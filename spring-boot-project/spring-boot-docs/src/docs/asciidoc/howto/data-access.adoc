@@ -315,7 +315,7 @@ include::{docs-java}/howto/dataaccess/usemultipleentitymanagers/MyEntityManagerF
 ----
 
 The example above creates an `EntityManagerFactory` using a `DataSource` bean named `firstDataSource`.
-It scans entities located in the same package as `Order`.
+It scans entities located in the same package as `com.fandf.test.entity.Order`.
 It is possible to map additional JPA properties using the `app.first.jpa` namespace.
 
 NOTE: When you create a bean for `LocalContainerEntityManagerFactoryBean` yourself, any customization that was applied during the creation of the auto-configured `LocalContainerEntityManagerFactoryBean` is lost.

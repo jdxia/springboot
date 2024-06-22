@@ -70,7 +70,7 @@ import org.springframework.util.unit.DataSize;
  * @author Parviz Rozikov
  * @since 1.0.0
  */
-@ConfigurationProperties(prefix = "server", ignoreUnknownFields = true)
+@ConfigurationProperties(prefix = "server", ignoreUnknownFields = true) //@ConfigurationProperties 的作用：可用于某个类上，设置属性profix用于指定在工程的全局配置文件（application.properties 或 application.yml）中的配置的根信息。
 public class ServerProperties {
 
 	/**

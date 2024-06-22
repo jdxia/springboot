@@ -518,7 +518,7 @@ By default, Jersey is set up as a servlet in a `@Bean` of type `ServletRegistrat
 By default, the servlet is initialized lazily, but you can customize that behavior by setting `spring.jersey.servlet.load-on-startup`.
 You can disable or override that bean by creating one of your own with the same name.
 You can also use a filter instead of a servlet by setting `spring.jersey.type=filter` (in which case, the `@Bean` to replace or override is `jerseyFilterRegistration`).
-The filter has an `@Order`, which you can set with `spring.jersey.filter.order`.
+The filter has an `@com.fandf.test.entity.Order`, which you can set with `spring.jersey.filter.order`.
 When using Jersey as a filter, a servlet that will handle any requests that are not intercepted by Jersey must be present.
 If your application does not contain such a servlet, you may want to enable the default servlet by setting configprop:server.servlet.register-default-servlet[] to `true`.
 Both the servlet and the filter registrations can be given init parameters by using `spring.jersey.init.*` to specify a map of properties.
@@ -551,9 +551,9 @@ Filters map to `+/*+`.
 If convention-based mapping is not flexible enough, you can use the `ServletRegistrationBean`, `FilterRegistrationBean`, and `ServletListenerRegistrationBean` classes for complete control.
 
 It is usually safe to leave filter beans unordered.
-If a specific order is required, you should annotate the `Filter` with `@Order` or make it implement `Ordered`.
-You cannot configure the order of a `Filter` by annotating its bean method with `@Order`.
-If you cannot change the `Filter` class to add `@Order` or implement `Ordered`, you must define a `FilterRegistrationBean` for the `Filter` and set the registration bean's order using the `setOrder(int)` method.
+If a specific order is required, you should annotate the `Filter` with `@com.fandf.test.entity.Order` or make it implement `Ordered`.
+You cannot configure the order of a `Filter` by annotating its bean method with `@com.fandf.test.entity.Order`.
+If you cannot change the `Filter` class to add `@com.fandf.test.entity.Order` or implement `Ordered`, you must define a `FilterRegistrationBean` for the `Filter` and set the registration bean's order using the `setOrder(int)` method.
 Avoid configuring a filter that reads the request body at `Ordered.HIGHEST_PRECEDENCE`, since it might go against the character encoding configuration of your application.
 If a servlet filter wraps the request, it should be configured with an order that is less than or equal to `OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER`.
 

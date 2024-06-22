@@ -53,6 +53,7 @@ public final class LazyInitializationBeanFactoryPostProcessor implements BeanFac
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
 			if (beanDefinition instanceof AbstractBeanDefinition) {
+				// 这里
 				postProcess(beanFactory, filters, beanName, (AbstractBeanDefinition) beanDefinition);
 			}
 		}
@@ -75,6 +76,7 @@ public final class LazyInitializationBeanFactoryPostProcessor implements BeanFac
 		}
 		Class<?> beanType = getBeanType(beanFactory, beanName);
 		if (!isExcluded(filters, beanName, beanDefinition, beanType)) {
+			// 修改 beanDefinition 的 lazyInit 属性为 true
 			beanDefinition.setLazyInit(true);
 		}
 	}

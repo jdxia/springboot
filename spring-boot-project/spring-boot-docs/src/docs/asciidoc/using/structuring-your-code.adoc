@@ -40,7 +40,7 @@ The following listing shows a typical layout:
 	         |   +- CustomerRepository.java
 	         |
 	         +- order
-	             +- Order.java
+	             +- com.fandf.test.entity.Order.java
 	             +- OrderController.java
 	             +- OrderService.java
 	             +- OrderRepository.java

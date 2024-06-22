@@ -69,9 +69,11 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	@Override
 	protected String getMainClass() throws Exception {
+		// 获取jar包里面的 MAINFEST.MF 文件内容
 		Manifest manifest = this.archive.getManifest();
 		String mainClass = null;
 		if (manifest != null) {
+			// 获取 文件里面的 Start-Class 的值, 比如 com.study.Application
 			mainClass = manifest.getMainAttributes().getValue(START_CLASS_ATTRIBUTE);
 		}
 		if (mainClass == null) {

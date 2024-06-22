@@ -30,6 +30,10 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
  * instance and a {@code String[]} of arguments. A new
  * {@link SpringApplicationRunListener} instance will be created for each run.
  *
+ * 监听SpringApplication运行方法。
+ * SpringApplication是SpringFactoriesLoader，应该声明一个接受SpringApplication实例和String[]参数的公共构造函数。
+ *  将为每次运行创建一个新的SpringApplicationRunListener的instance。
+ *
  * @author Phillip Webb
  * @author Dave Syer
  * @author Andy Wilkinson
@@ -38,6 +42,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
  */
 public interface SpringApplicationRunListener {
 
+	// 首次启动run方法时立即调用。可用于非常早期的初始化。
 	/**
 	 * Called immediately when the run method has first started. Can be used for very
 	 * early initialization.
@@ -46,6 +51,7 @@ public interface SpringApplicationRunListener {
 	default void starting(ConfigurableBootstrapContext bootstrapContext) {
 	}
 
+	// 准备好环境（Environment构建完成），但在创建ApplicationContext之前调用。
 	/**
 	 * Called once the environment has been prepared, but before the
 	 * {@link ApplicationContext} has been created.
@@ -56,6 +62,7 @@ public interface SpringApplicationRunListener {
 			ConfigurableEnvironment environment) {
 	}
 
+	// 在创建和构建ApplicationContext之后，但在加载之前调用。
 	/**
 	 * Called once the {@link ApplicationContext} has been created and prepared, but
 	 * before sources have been loaded.
@@ -64,6 +71,7 @@ public interface SpringApplicationRunListener {
 	default void contextPrepared(ConfigurableApplicationContext context) {
 	}
 
+	// ApplicationContext已加载但在刷新之前调用。
 	/**
 	 * Called once the application context has been loaded but before it has been
 	 * refreshed.
@@ -84,6 +92,7 @@ public interface SpringApplicationRunListener {
 		started(context);
 	}
 
+	// ApplicationContext已刷新，应用程序已启动，但尚未调用CommandLineRunners和ApplicationRunners。
 	/**
 	 * The context has been refreshed and the application has started but
 	 * {@link CommandLineRunner CommandLineRunners} and {@link ApplicationRunner
@@ -110,6 +119,7 @@ public interface SpringApplicationRunListener {
 		running(context);
 	}
 
+	// 在运行方法彻底完成之前立即调用，刷新ApplicationContext并调用所有CommandLineRunners和ApplicationRunner。
 	/**
 	 * Called immediately before the run method finishes, when the application context has
 	 * been refreshed and all {@link CommandLineRunner CommandLineRunners} and
@@ -123,6 +133,7 @@ public interface SpringApplicationRunListener {
 	default void running(ConfigurableApplicationContext context) {
 	}
 
+	// 在运行应用程序时失败时调用
 	/**
 	 * Called when a failure occurs when running the application.
 	 * @param context the application context or {@code null} if a failure occurred before

@@ -48,6 +48,13 @@ import org.springframework.core.type.filter.TypeFilter;
  * @since 1.4.0
  */
 public class TypeExcludeFilter implements TypeFilter, BeanFactoryAware {
+	/**
+	 * 提供从 BeanFactory 加载并自动应用于 @SpringBootApplication 扫描的排除 TypeFilter 。
+	 *
+	 * 实现应提供一个向 BeanFactory 注册的子类，并重写 match(MetadataReader, MetadataReaderFactory) 方法。它们还应该实现一个有效的 hashCode 和 equals 方法，以便可以将它们用作Spring测试的应用程序上下文缓存的一部分。
+	 *
+	 * 注意，TypeExcludeFilters 在应用程序生命周期的很早就初始化了，它们通常不应该依赖于任何其他bean。它们主要在内部用于支持 spring-boot-test
+	 */
 
 	private BeanFactory beanFactory;
 
@@ -62,7 +69,12 @@ public class TypeExcludeFilter implements TypeFilter, BeanFactoryAware {
 	public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory)
 			throws IOException {
 		if (this.beanFactory instanceof ListableBeanFactory && getClass() == TypeExcludeFilter.class) {
+			// getDelegates() 从bean工厂里面找 TypeExcludeFilter这个接口类型的对象
+			// 如果想自己实现TypeExcludeFilter这个类型的对象, 实现过滤, 那需要在扫描前就把这个给注入到容器里面
+			// 实现TypeExcludeFilter接口, 并且 定义容器初始化器 ApplicationContextInitializer类 注入才行
+			// 容器初始化器写好之后, 还要在 spring.factories 文件中配置下这个 初始化器的类
 			for (TypeExcludeFilter delegate : getDelegates()) {
+				// 挨个调用match方法,匹配
 				if (delegate.match(metadataReader, metadataReaderFactory)) {
 					return true;
 				}

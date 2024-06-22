@@ -108,6 +108,9 @@ public abstract class AutoConfigurationPackages {
 
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
+			// metadata: 注解标注的元数据信息
+
+			// 包名就是扫描路径, 相当于把扫描包路径注册成为一个bean
 			register(registry, new PackageImports(metadata).getPackageNames().toArray(new String[0]));
 		}
 

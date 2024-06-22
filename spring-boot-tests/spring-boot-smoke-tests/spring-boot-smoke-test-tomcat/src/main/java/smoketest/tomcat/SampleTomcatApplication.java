@@ -24,7 +24,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
+
+import java.net.URL;
+import java.net.URLClassLoader;
 
 @SpringBootApplication
 public class SampleTomcatApplication {
@@ -49,7 +53,16 @@ public class SampleTomcatApplication {
 	}
 
 	public static void main(String[] args) {
-		SpringApplication.run(SampleTomcatApplication.class, args);
+
+		// jar包是由 JarLauncher 这个类启动
+
+//		SpringApplicationBuilder springApplicationBuilder = new SpringApplicationBuilder(SampleTomcatApplication.class)
+//				.properties("spring.config.location=classpath:application.properties");
+//		springApplicationBuilder.build().run(args);
+
+		SpringApplication springApplication = new SpringApplication(SampleTomcatApplication.class);
+		springApplication.run(args);
+
 	}
 
 }

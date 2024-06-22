@@ -21,7 +21,7 @@ The `spring-boot-starter-rsocket` starter provides both dependencies.
 See the <<features#features.json.jackson,Jackson support section>> to know more about customization possibilities.
 
 Developers can customize the `RSocketStrategies` component by creating beans that implement the `RSocketStrategiesCustomizer` interface.
-Note that their `@Order` is important, as it determines the order of codecs.
+Note that their `@com.fandf.test.entity.Order` is important, as it determines the order of codecs.
 
 
 

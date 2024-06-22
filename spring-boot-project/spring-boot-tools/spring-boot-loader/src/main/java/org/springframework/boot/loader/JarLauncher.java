@@ -84,7 +84,21 @@ public class JarLauncher extends ExecutableArchiveLauncher {
 		return NESTED_ARCHIVE_ENTRY_FILTER.matches(entry);
 	}
 
+	// jar包启动的时候, 是用这个来启动的, 和idea里面的不一样
 	public static void main(String[] args) throws Exception {
+		/**
+		 * launch 方法里面有个classloader
+		 * 如果你在idea里面也想要这个效果, 需要在springboot里面引入 spring-boot-loader 这个包, 并且在这里启动, 就可以了
+		 * 你在项目中一开始打印下 线程上下文的类加载器, 你看下idea项目的main启动, 和jar包启动打印的类加载器是不是一样, 是不一样的
+		 * jar包怎么打出来? spring-boot-maven-plugin 插件就可以
+		 *
+		 * jar包启动是先执行这个的main方法, 然后创建 LaunchedURLClassLoader 类加载器,
+		 * 管理的路径是jar包里面的BOOT-INF的classes(项目自己写的类)和lib(项目的依赖)文件夹
+		 *
+		 * 然后从META-INF/MANIFEST.MF文件里面获取Start-Class的值, 然后启动这个类的main方法
+		 *
+		 * 看 launch 方法, 重点
+		 */
 		new JarLauncher().launch(args);
 	}
 

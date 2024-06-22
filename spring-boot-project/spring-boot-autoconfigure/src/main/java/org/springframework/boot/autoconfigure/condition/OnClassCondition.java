@@ -49,7 +49,9 @@ class OnClassCondition extends FilteringSpringBootCondition {
 		// Split the work and perform half in a background thread if more than one
 		// processor is available. Using a single additional thread seems to offer the
 		// best performance. More threads make things worse.
+		// 判断是不是多核
 		if (autoConfigurationClasses.length > 1 && Runtime.getRuntime().availableProcessors() > 1) {
+			// 多核走这
 			return resolveOutcomesThreaded(autoConfigurationClasses, autoConfigurationMetadata);
 		}
 		else {
@@ -61,11 +63,15 @@ class OnClassCondition extends FilteringSpringBootCondition {
 
 	private ConditionOutcome[] resolveOutcomesThreaded(String[] autoConfigurationClasses,
 			AutoConfigurationMetadata autoConfigurationMetadata) {
+		// 所有配置项除以2, 分开来
 		int split = autoConfigurationClasses.length / 2;
+		// 处理, 里面有多线程, 第一半开启一个线程处理
 		OutcomesResolver firstHalfResolver = createOutcomesResolver(autoConfigurationClasses, 0, split,
 				autoConfigurationMetadata);
+		// 另一半就当前线程处理了
 		OutcomesResolver secondHalfResolver = new StandardOutcomesResolver(autoConfigurationClasses, split,
 				autoConfigurationClasses.length, autoConfigurationMetadata, getBeanClassLoader());
+		// resolveOutcomes 方法里面有 join线程等待
 		ConditionOutcome[] secondHalf = secondHalfResolver.resolveOutcomes();
 		ConditionOutcome[] firstHalf = firstHalfResolver.resolveOutcomes();
 		ConditionOutcome[] outcomes = new ConditionOutcome[autoConfigurationClasses.length];
@@ -79,6 +85,7 @@ class OnClassCondition extends FilteringSpringBootCondition {
 		OutcomesResolver outcomesResolver = new StandardOutcomesResolver(autoConfigurationClasses, start, end,
 				autoConfigurationMetadata, getBeanClassLoader());
 		try {
+			// 开启线程处理了
 			return new ThreadedOutcomesResolver(outcomesResolver);
 		}
 		catch (AccessControlException ex) {
@@ -90,17 +97,24 @@ class OnClassCondition extends FilteringSpringBootCondition {
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 		ClassLoader classLoader = context.getClassLoader();
 		ConditionMessage matchMessage = ConditionMessage.empty();
+
+		// 拿到ConditionalOnClass注解中的value值，也就是要判断是否存在的类名
 		List<String> onClasses = getCandidates(metadata, ConditionalOnClass.class);
 		if (onClasses != null) {
+			// 判断onClasses中不存在的类
 			List<String> missing = filter(onClasses, ClassNameFilter.MISSING, classLoader);
+			// 如果有缺失的类，那就表示不匹配
 			if (!missing.isEmpty()) {
 				return ConditionOutcome.noMatch(ConditionMessage.forCondition(ConditionalOnClass.class)
 						.didNotFind("required class", "required classes").items(Style.QUOTE, missing));
 			}
+			// 否则就表示匹配
 			matchMessage = matchMessage.andCondition(ConditionalOnClass.class)
 					.found("required class", "required classes")
 					.items(Style.QUOTE, filter(onClasses, ClassNameFilter.PRESENT, classLoader));
 		}
+
+		// 和上面类似，只不过是判断onMissingClasses是不是全部缺失，如果是则表示匹配
 		List<String> onMissingClasses = getCandidates(metadata, ConditionalOnMissingClass.class);
 		if (onMissingClasses != null) {
 			List<String> present = filter(onMissingClasses, ClassNameFilter.PRESENT, classLoader);
@@ -135,7 +149,7 @@ class OnClassCondition extends FilteringSpringBootCondition {
 	}
 
 	private interface OutcomesResolver {
-
+		// 可以看下子类 ThreadedOutcomesResolver
 		ConditionOutcome[] resolveOutcomes();
 
 	}
@@ -192,12 +206,18 @@ class OnClassCondition extends FilteringSpringBootCondition {
 
 		private ConditionOutcome[] getOutcomes(String[] autoConfigurationClasses, int start, int end,
 				AutoConfigurationMetadata autoConfigurationMetadata) {
+
+			// 记录每个自动配置的匹配结果
 			ConditionOutcome[] outcomes = new ConditionOutcome[end - start];
+
+			// 遍历每个自动配置进行匹配
 			for (int i = start; i < end; i++) {
 				String autoConfigurationClass = autoConfigurationClasses[i];
 				if (autoConfigurationClass != null) {
+					// 从autoConfigurationMetadata中获取当前自动配置的ConditionalOnClass的属性，拿到的就是当前自动配置所需要的类
 					String candidates = autoConfigurationMetadata.get(autoConfigurationClass, "ConditionalOnClass");
 					if (candidates != null) {
+						// 判断需要的类存不存在
 						outcomes[i - start] = getOutcome(candidates);
 					}
 				}
