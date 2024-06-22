@@ -93,14 +93,18 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 		MutablePropertySources propertySources = environment.getPropertySources();
+		// 这边解析参数是环境变量或者命令行的参数, 这个时候 properties 文件还没有解析
+		// 所以 --spring.application.json=xxx 不能配置在 properties 文件中
 		propertySources.stream().map(JsonPropertyValue::get).filter(Objects::nonNull).findFirst()
 				.ifPresent((v) -> processJson(environment, v));
 	}
 
 	private void processJson(ConfigurableEnvironment environment, JsonPropertyValue propertyValue) {
 		JsonParser parser = JsonParserFactory.getJsonParser();
+		// 解析json字符串为map
 		Map<String, Object> map = parser.parseMap(propertyValue.getJson());
 		if (!map.isEmpty()) {
+			// 将JsonPropertySource添加在servletContextInitParams之前
 			addJsonPropertySource(environment, new JsonPropertySource(propertyValue, flatten(map)));
 		}
 	}
@@ -211,9 +215,13 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 		}
 
 		static JsonPropertyValue get(PropertySource<?> propertySource) {
+			// 从propertySource获取key为"spring.application.json"、"SPRING_APPLICATION_JSON"的配置项
+			// 可以通过-D的方式来配置spring.application.json:xxx，或者commandline的方式配置都可以
+			// value为一个json字符串
 			for (String candidate : CANDIDATES) {
 				Object value = propertySource.getProperty(candidate);
 				if (value instanceof String && StringUtils.hasLength((String) value)) {
+					// 返回 spring.application.json={\"k1\":\"v1\", \"k2\":\"v2\"}中value的部分
 					return new JsonPropertyValue(propertySource, candidate, (String) value);
 				}
 			}

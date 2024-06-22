@@ -54,26 +54,41 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("deprecation")
 @Configuration(proxyBeanMethods = false)
+// 仅在类 DataSource, EmbeddedDatabaseType 存在于 classpath 上时才生效,
+// 这两个类属于包 spring-jdbc
 @ConditionalOnClass({ DataSource.class, EmbeddedDatabaseType.class })
 @ConditionalOnMissingBean(type = "io.r2dbc.spi.ConnectionFactory")
 @AutoConfigureBefore(SqlInitializationAutoConfiguration.class)
+// 确保前缀为 spring.datasource 的配置属性项被加载到 bean DataSourceProperties
 @EnableConfigurationProperties(DataSourceProperties.class)
 @Import({ DataSourcePoolMetadataProvidersConfiguration.class,
 		DataSourceInitializationConfiguration.InitializationSpecificCredentialsDataSourceInitializationConfiguration.class,
 		DataSourceInitializationConfiguration.SharedCredentialsDataSourceInitializationConfiguration.class })
 public class DataSourceAutoConfiguration {
 
+	// 内嵌配置类
 	@Configuration(proxyBeanMethods = false)
+	// 仅在嵌入式数据库被使用时才生效
+	// 嵌入式数据库这里指的是 h2, derby, 或者 hsql
 	@Conditional(EmbeddedDatabaseCondition.class)
+	// 仅在没有类型为 DataSource/XADataSource 的 bean 定义时才生效
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+	// 导入嵌入式数据库有关的数据源配置
+	// 提供前所使用的嵌入式数据库的数据源 bean EmbeddedDatabase
 	@Import(EmbeddedDataSourceConfiguration.class)
 	protected static class EmbeddedDatabaseConfiguration {
 
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	// 仅在类 PooledDataSourceCondition 条件满足时生效 ,
+	// PooledDataSourceCondition 会检测所使用的数据源组件是否支持连接池
 	@Conditional(PooledDataSourceCondition.class)
+	// 仅在没有类型为 DataSource/XADataSource 的 bean 定义时才生效
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+	// 导入针对不同数据库类型数据源连接组件的数据源配置，这些配置仅在使用了相应的数据源连接
+	// 组件时才生效，一般开发人员只使用其中一种，所以也就只会有一个生效。
+	// 这些配置的目的都是为了定义一个 数据源 bean dataSource
 	@Import({ DataSourceConfiguration.Hikari.class, DataSourceConfiguration.Tomcat.class,
 			DataSourceConfiguration.Dbcp2.class, DataSourceConfiguration.OracleUcp.class,
 			DataSourceConfiguration.Generic.class, DataSourceJmxConfiguration.class })

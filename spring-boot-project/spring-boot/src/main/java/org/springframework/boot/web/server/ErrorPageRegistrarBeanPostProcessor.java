@@ -29,6 +29,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.Assert;
 
+// Bean的后置处理器，它将Bean工厂中的所有 ErrorPageRegistrars 应用于 ErrorPageRegistry 类型的Bean
 /**
  * {@link BeanPostProcessor} that applies all {@link ErrorPageRegistrar}s from the bean
  * factory to {@link ErrorPageRegistry} beans.

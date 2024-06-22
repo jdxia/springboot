@@ -434,6 +434,7 @@ public class JarFile extends AbstractJarFile implements Iterable<java.util.jar.J
 		String handlers = System.getProperty(PROTOCOL_HANDLER, "");
 		System.setProperty(PROTOCOL_HANDLER,
 				((handlers == null || handlers.isEmpty()) ? HANDLERS_PACKAGE : handlers + "|" + HANDLERS_PACKAGE));
+		// 重置缓存的UrlHandlers;
 		resetCachedUrlHandlers();
 	}
 
@@ -444,6 +445,7 @@ public class JarFile extends AbstractJarFile implements Iterable<java.util.jar.J
 	 */
 	private static void resetCachedUrlHandlers() {
 		try {
+			// 由URL类实现：通过URL.setURLStreamHandlerFactory()获得URLStreamHandler。
 			URL.setURLStreamHandlerFactory(null);
 		}
 		catch (Error ex) {

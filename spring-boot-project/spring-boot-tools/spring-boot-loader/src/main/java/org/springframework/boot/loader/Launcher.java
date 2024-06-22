@@ -50,11 +50,23 @@ public abstract class Launcher {
 	 */
 	protected void launch(String[] args) throws Exception {
 		if (!isExploded()) {
+			// 注册jar URL处理器
 			JarFile.registerUrlProtocolHandler();
 		}
+		/**
+		 * 创建一个类加载器, 这边不是AppClassLoader, 而是 LaunchedURLClassLoader
+		 * 你把打好的jar包解压开来,你会发现,里面有一层一层包名,然后类名,
+		 * AppClassLoader加载类的时候, 只能加载准确路径的类, 但是LaunchedURLClassLoader可以加载jar包里面的类, 在jar包里面根据包名类名一层一层去找
+		 *
+		 * 如果你在idea里面也想要这个效果, 需要在springboot里面引入 spring-boot-loader 这个包, 并且在 org.springframework.boot.loader.JarLauncher#main(java.lang.String[]) 这里启动
+		 *
+		 * getClassPathArchivesIterator 看子类 {@link org.springframework.boot.loader.ExecutableArchiveLauncher#getClassPathArchivesIterator()}
+		 */
 		ClassLoader classLoader = createClassLoader(getClassPathArchivesIterator());
 		String jarMode = System.getProperty("jarmode");
+		// getMainClass 是获取我们业务的main方法在的启动类, 重点
 		String launchClass = (jarMode != null && !jarMode.isEmpty()) ? JAR_MODE_LAUNCHER : getMainClass();
+		// 调用实际的引导类launch, 往下
 		launch(args, launchClass, classLoader);
 	}
 
@@ -104,7 +116,9 @@ public abstract class Launcher {
 	 * @throws Exception if the launch fails
 	 */
 	protected void launch(String[] args, String launchClass, ClassLoader classLoader) throws Exception {
+		// 设置到当前线程的上下文类加载器
 		Thread.currentThread().setContextClassLoader(classLoader);
+		// run往下
 		createMainMethodRunner(launchClass, args, classLoader).run();
 	}
 

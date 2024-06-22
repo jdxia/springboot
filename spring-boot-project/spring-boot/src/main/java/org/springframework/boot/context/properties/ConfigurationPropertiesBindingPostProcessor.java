@@ -106,6 +106,7 @@ public class ConfigurationPropertiesBindingPostProcessor
 	 */
 	public static void register(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "Registry must not be null");
+		//判断ConfigurationPropertiesBindingPostProcessor是否已经注册
 		if (!registry.containsBeanDefinition(BEAN_NAME)) {
 			BeanDefinition definition = BeanDefinitionBuilder
 					.rootBeanDefinition(ConfigurationPropertiesBindingPostProcessor.class).getBeanDefinition();

@@ -54,8 +54,10 @@ final class ConfigurationPropertiesBeanRegistrar {
 		register(type, annotation);
 	}
 
+	//注册配置类
 	void register(Class<?> type, MergedAnnotation<ConfigurationProperties> annotation) {
 		String name = getName(type, annotation);
+		//避免配置类被重复注解
 		if (!containsBeanDefinition(name)) {
 			registerBeanDefinition(name, type, annotation);
 		}

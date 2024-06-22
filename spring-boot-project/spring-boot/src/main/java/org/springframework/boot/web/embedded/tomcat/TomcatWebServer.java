@@ -37,6 +37,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.naming.ContextBindings;
 
+import org.springframework.boot.web.context.WebServerGracefulShutdownLifecycle;
 import org.springframework.boot.web.server.GracefulShutdownCallback;
 import org.springframework.boot.web.server.GracefulShutdownResult;
 import org.springframework.boot.web.server.PortInUseException;
@@ -381,12 +382,18 @@ public class TomcatWebServer implements WebServer {
 		return this.tomcat;
 	}
 
+	/**
+	 * 被 {@link WebServerGracefulShutdownLifecycle#stop(Runnable)} 调用
+	 * 它实现了 spring的 SmartLifecycle
+	 */
 	@Override
 	public void shutDownGracefully(GracefulShutdownCallback callback) {
 		if (this.gracefulShutdown == null) {
+			// 立刻停机
 			callback.shutdownComplete(GracefulShutdownResult.IMMEDIATE);
 			return;
 		}
+		// 优雅关机
 		this.gracefulShutdown.shutDownGracefully(callback);
 	}
 

@@ -62,11 +62,13 @@ class SpringApplicationRunListeners {
 	}
 
 	void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
+		// doWithListeners 往下
 		doWithListeners("spring.boot.application.environment-prepared",
 				(listener) -> listener.environmentPrepared(bootstrapContext, environment));
 	}
 
 	void contextPrepared(ConfigurableApplicationContext context) {
+		// 看 doWithListeners
 		doWithListeners("spring.boot.application.context-prepared", (listener) -> listener.contextPrepared(context));
 	}
 
@@ -75,6 +77,7 @@ class SpringApplicationRunListeners {
 	}
 
 	void started(ConfigurableApplicationContext context, Duration timeTaken) {
+		// 可以看 listener.started
 		doWithListeners("spring.boot.application.started", (listener) -> listener.started(context, timeTaken));
 	}
 
@@ -117,6 +120,16 @@ class SpringApplicationRunListeners {
 	private void doWithListeners(String stepName, Consumer<SpringApplicationRunListener> listenerAction,
 			Consumer<StartupStep> stepAction) {
 		StartupStep step = this.applicationStartup.start(stepName);
+
+		/**
+		 * this.listeners 是 EventPublishingRunListener
+		 *
+		 * action是其中一种情况, 实际是函数式传递过来的
+		 * action 是 (listener) -> listener.starting(bootstrapContext)
+		 * 就是调用 {@link org.springframework.boot.context.event.EventPublishingRunListener#starting}
+		 *
+		 * 有调用 starting的, 也有调用 environmentPrepared
+		 */
 		this.listeners.forEach(listenerAction);
 		if (stepAction != null) {
 			stepAction.accept(step);

@@ -134,6 +134,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 */
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// 注册ServletContext注入器
 		beanFactory.addBeanPostProcessor(new WebApplicationContextServletContextAwareProcessor(this));
 		beanFactory.ignoreDependencyInterface(ServletContextAware.class);
 		registerWebApplicationScopes();
@@ -142,6 +143,10 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	@Override
 	public final void refresh() throws BeansException, IllegalStateException {
 		try {
+			/**
+			 * 调用父类的 refresh 方法
+			 * 父类的refresh方法也会调用到 这边的 onRefresh {@link ServletWebServerApplicationContext#onRefresh()}
+			 */
 			super.refresh();
 		}
 		catch (RuntimeException ex) {
@@ -153,10 +158,14 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		}
 	}
 
-	@Override
+	@Override // 自己是子类, 重写了 onRefresh 方法
 	protected void onRefresh() {
 		super.onRefresh();
 		try {
+			/**
+			 * 启动了Tomcat之类的
+			 * 里面会注册优雅关机的
+			 */
 			createWebServer();
 		}
 		catch (Throwable ex) {
@@ -177,10 +186,14 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		ServletContext servletContext = getServletContext();
 		if (webServer == null && servletContext == null) {
 			StartupStep createWebServer = this.getApplicationStartup().start("spring.boot.webserver.create");
+
+			// 工厂, 有jetty也有tomcat
 			ServletWebServerFactory factory = getWebServerFactory();
 			createWebServer.tag("factory", factory.getClass().toString());
 			this.webServer = factory.getWebServer(getSelfInitializer());
 			createWebServer.end();
+
+			// 优雅关机
 			getBeanFactory().registerSingleton("webServerGracefulShutdown",
 					new WebServerGracefulShutdownLifecycle(this.webServer));
 			getBeanFactory().registerSingleton("webServerStartStop",
@@ -205,12 +218,19 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 */
 	protected ServletWebServerFactory getWebServerFactory() {
 		// Use bean names so that we don't consider the hierarchy
+		/**
+		 * 这个bean是怎么来的? 是自动装配定义的
+		 * 找这个的自动装配怎么找? 类名 + AutoConfiguration, ServletWebServerFactoryAutoConfiguration
+		 * 由 ServletWebServerFactoryAutoConfiguration 决定装配的是什么? 由上面条件注解决定
+		 */
 		String[] beanNames = getBeanFactory().getBeanNamesForType(ServletWebServerFactory.class);
 		if (beanNames.length == 0) {
+			// 一个都没有直接报错
 			throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to missing "
 					+ "ServletWebServerFactory bean.");
 		}
 		if (beanNames.length > 1) {
+			// 大于一个也不行
 			throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to multiple "
 					+ "ServletWebServerFactory beans : " + StringUtils.arrayToCommaDelimitedString(beanNames));
 		}

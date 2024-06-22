@@ -62,10 +62,12 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
  * @since 2.0.0
  */
 @Configuration(proxyBeanMethods = false)
+//在自动配置中具有最高优先级执行
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
-@ConditionalOnClass(ServletRequest.class)
+@ConditionalOnClass(ServletRequest.class) // 项目里面要有这个类
 @ConditionalOnWebApplication(type = Type.SERVLET)
 @EnableConfigurationProperties(ServerProperties.class)
+// 导入了一些类
 @Import({ ServletWebServerFactoryAutoConfiguration.BeanPostProcessorsRegistrar.class,
 		ServletWebServerFactoryConfiguration.EmbeddedTomcat.class,
 		ServletWebServerFactoryConfiguration.EmbeddedJetty.class,
@@ -82,7 +84,7 @@ public class ServletWebServerFactoryAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnClass(name = "org.apache.catalina.startup.Tomcat")
+	@ConditionalOnClass(name = "org.apache.catalina.startup.Tomcat") // 项目里面有tomcat, 这个生效
 	public TomcatServletWebServerFactoryCustomizer tomcatServletWebServerFactoryCustomizer(
 			ServerProperties serverProperties) {
 		return new TomcatServletWebServerFactoryCustomizer(serverProperties);
@@ -94,7 +96,7 @@ public class ServletWebServerFactoryAutoConfiguration {
 	static class ForwardedHeaderFilterConfiguration {
 
 		@Bean
-		@ConditionalOnClass(name = "org.apache.catalina.startup.Tomcat")
+		@ConditionalOnClass(name = "org.apache.catalina.startup.Tomcat") // 项目里面有tomcat, 这个生效
 		ForwardedHeaderFilterCustomizer tomcatForwardedHeaderFilterCustomizer(ServerProperties serverProperties) {
 			return (filter) -> filter.setRelativeRedirects(serverProperties.getTomcat().isUseRelativeRedirects());
 		}
@@ -139,6 +141,7 @@ public class ServletWebServerFactoryAutoConfiguration {
 			if (this.beanFactory == null) {
 				return;
 			}
+			// 编程式注入组件
 			registerSyntheticBeanIfMissing(registry, "webServerFactoryCustomizerBeanPostProcessor",
 					WebServerFactoryCustomizerBeanPostProcessor.class,
 					WebServerFactoryCustomizerBeanPostProcessor::new);

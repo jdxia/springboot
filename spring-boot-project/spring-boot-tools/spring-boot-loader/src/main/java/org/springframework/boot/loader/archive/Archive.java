@@ -37,6 +37,15 @@ import org.springframework.boot.loader.Launcher;
  * @see JarFileArchive
  */
 public interface Archive extends Iterable<Archive.Entry>, AutoCloseable {
+	/**
+	 * Archive继承自Archive.Entry，Archive.Entry有两种实现：
+	 *
+	 * JarFileArchive.JarFileEntry --> 基于java.util.jar.JarEntry实现，表示FAT JAR嵌入资源。
+	 * ExplodedArchive.FileEntry --> 基于文件系统实现
+	 *
+	 * 两者的主要差别是ExplodedArchive相比于JarFileArchive多了一个获取文件的getFile()方法；
+	 * 也就是说一个在jar包环境下寻找资源，一个在文件夹目录下寻找资源；所以从实现层面证明了JarLauncher支持JAR和文件系统两种启动方式。
+	 */
 
 	/**
 	 * Returns a URL that can be used to load the archive.

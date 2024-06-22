@@ -88,6 +88,8 @@ abstract class ReactiveWebServerFactoryConfiguration {
 				ObjectProvider<TomcatContextCustomizer> contextCustomizers,
 				ObjectProvider<TomcatProtocolHandlerCustomizer<?>> protocolHandlerCustomizers) {
 			TomcatReactiveWebServerFactory factory = new TomcatReactiveWebServerFactory();
+
+			// orderedStream()调用时会去Spring容器中找到TomcatConnectorCustomizer类型的Bean，默认是没有的，可以自己定义
 			factory.getTomcatConnectorCustomizers()
 					.addAll(connectorCustomizers.orderedStream().collect(Collectors.toList()));
 			factory.getTomcatContextCustomizers()

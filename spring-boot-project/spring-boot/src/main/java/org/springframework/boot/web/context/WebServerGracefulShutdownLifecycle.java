@@ -56,6 +56,7 @@ public final class WebServerGracefulShutdownLifecycle implements SmartLifecycle 
 		throw new UnsupportedOperationException("Stop must not be invoked directly");
 	}
 
+	// 这个类 实现了 spring的 SmartLifecycle
 	@Override
 	public void stop(Runnable callback) {
 		this.running = false;

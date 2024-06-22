@@ -69,9 +69,11 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	@Override
 	protected String getMainClass() throws Exception {
+		// 获取jar包里面的 MAINFEST.MF 文件内容
 		Manifest manifest = this.archive.getManifest();
 		String mainClass = null;
 		if (manifest != null) {
+			// 获取 文件里面的 Start-Class 的值, 比如 com.study.Application
 			mainClass = manifest.getMainAttributes().getValue(START_CLASS_ATTRIBUTE);
 		}
 		if (mainClass == null) {
@@ -102,6 +104,13 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 	@Override
 	protected Iterator<Archive> getClassPathArchivesIterator() throws Exception {
 		Archive.EntryFilter searchFilter = this::isSearchCandidate;
+		/**
+		 * archive即归档文件，这个概念在linux下比较常见；通常就是一个tar/zip格式的压缩包；而jar正是zip格式的。
+		 * SpringBoot抽象了Archive的概念，一个Archive可以是jar（JarFileArchive），也可以是文件目录（ExplodedArchive）；这样也就统一了访问资源的逻辑层
+		 *
+		 * 可以看下 isNestedArchive {@link JarLauncher#isNestedArchive(Archive.Entry)}
+		 *
+		 */
 		Iterator<Archive> archives = this.archive.getNestedArchives(searchFilter,
 				(entry) -> isNestedArchive(entry) && !isEntryIndexed(entry));
 		if (isPostProcessingClassPathArchives()) {

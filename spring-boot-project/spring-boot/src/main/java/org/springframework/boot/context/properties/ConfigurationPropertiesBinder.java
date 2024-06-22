@@ -191,12 +191,15 @@ class ConfigurationPropertiesBinder {
 	}
 
 	static void register(BeanDefinitionRegistry registry) {
+		//判断ConfigurationPropertiesBinder.Factory是否已经注册
 		if (!registry.containsBeanDefinition(FACTORY_BEAN_NAME)) {
 			BeanDefinition definition = BeanDefinitionBuilder
 					.rootBeanDefinition(ConfigurationPropertiesBinder.Factory.class).getBeanDefinition();
 			definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 			registry.registerBeanDefinition(ConfigurationPropertiesBinder.FACTORY_BEAN_NAME, definition);
 		}
+
+		//判断ConfigurationPropertiesBinder是否已经注册
 		if (!registry.containsBeanDefinition(BEAN_NAME)) {
 			BeanDefinition definition = BeanDefinitionBuilder
 					.rootBeanDefinition(ConfigurationPropertiesBinder.class,

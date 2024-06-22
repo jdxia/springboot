@@ -1,0 +1,45 @@
+server:
+  port: 8083
+  shutdown: graceful
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      encoding: UTF-8
+      default-charset: UTF-8
+
+logging:
+  config: classpath:logback-spring.xml
+
+spring:
+  messages:
+    encoding: UTF-8
+  main:
+    banner-mode: off
+    allow-circular-references: true
+  application:
+    name: spring-boot-test
+  # 移除静态资源文件映射
+  resources:
+    add-mappings: false
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+management:
+  health:
+    enable: true
+    show-details: always
+    db:
+      enabled: false
+    probes:
+      enabled: true
+  endpoints:
+    enabled-by-default: true #暴露所有端点信息
+    web:
+      exposure:
+        include: '*'  #以web方式暴露
+    tags:
+      application: ${spring.application.name} # 暴露的数据中添加application label
+
+test:
+  name: xjd

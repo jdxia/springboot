@@ -49,6 +49,7 @@ import org.springframework.util.StringUtils;
  * @since 2.4.0
  */
 public class ConfigDataEnvironmentPostProcessor implements EnvironmentPostProcessor, Ordered {
+	// 以前我们的配置文件的优先级 是由 ConfigFileApplicationListener 处理的, 现在是这个
 
 	/**
 	 * The default order for the processor.
@@ -99,6 +100,8 @@ public class ConfigDataEnvironmentPostProcessor implements EnvironmentPostProces
 		try {
 			this.logger.trace("Post-processing environment to add config data");
 			resourceLoader = (resourceLoader != null) ? resourceLoader : new DefaultResourceLoader();
+			// 先生成 ConfigDataEnvironment 对象，核心是根据指定 location 构造类型为 Kind.INITIAL_IMPORT 的 ConfigDataEnvironmentContributor
+			// getConfigDataEnvironment 是对环境的一层封装，对配置文件的读取是后面的那个方法：processAndApply()
 			getConfigDataEnvironment(environment, resourceLoader, additionalProfiles).processAndApply();
 		}
 		catch (UseLegacyConfigProcessingException ex) {

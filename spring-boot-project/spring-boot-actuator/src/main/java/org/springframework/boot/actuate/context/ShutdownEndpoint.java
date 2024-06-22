@@ -54,6 +54,8 @@ public class ShutdownEndpoint implements ApplicationContextAware {
 			return SHUTDOWN_MESSAGE;
 		}
 		finally {
+			// 接收到请求后，启动新线程执行 this.context.close() 操作
+			// 注意：执行 this.context.close() 时，也会异步触发 SpringApplicationShutdownHook#run() 方法
 			Thread thread = new Thread(this::performShutdown);
 			thread.setContextClassLoader(getClass().getClassLoader());
 			thread.start();

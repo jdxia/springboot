@@ -43,9 +43,12 @@ public class MainMethodRunner {
 	}
 
 	public void run() throws Exception {
+		// 当前线程上下文类加载器去加载mainClassName, 就是启动类
 		Class<?> mainClass = Class.forName(this.mainClassName, false, Thread.currentThread().getContextClassLoader());
+		// 获取启动类main方法
 		Method mainMethod = mainClass.getDeclaredMethod("main", String[].class);
 		mainMethod.setAccessible(true);
+		// 执行main方法
 		mainMethod.invoke(null, new Object[] { this.args });
 	}
 

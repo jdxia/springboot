@@ -83,6 +83,7 @@ public class EnvironmentPostProcessorApplicationListener implements SmartApplica
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
+		// 环境准备好的事件
 		if (event instanceof ApplicationEnvironmentPreparedEvent) {
 			onApplicationEnvironmentPreparedEvent((ApplicationEnvironmentPreparedEvent) event);
 		}
@@ -97,6 +98,23 @@ public class EnvironmentPostProcessorApplicationListener implements SmartApplica
 	private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
 		ConfigurableEnvironment environment = event.getEnvironment();
 		SpringApplication application = event.getSpringApplication();
+
+		/**
+		 * 从 spring.factories 中拿出 EnvironmentPostProcessor 进一步处理 Environment
+		 * 也就是 spring.factories 文件里面的 key是 org.springframework.boot.env.EnvironmentPostProcessor=xxx
+		 * RandomValuePropertySourceEnvironmentPostProcessor 可以生成随机数 @Value("${random.int}") random.开头的
+		 * SystemEnvironmentPropertySourceEnvironmentPostProcessor
+		 * SpringApplicationJsonEnvironmentPostProcessor 可以在命令行配置 spring.application.json={\"k1\":\"v1\"} 解析成map放进来, 可以覆盖 properties 里面的
+		 * CloudFoundryVcapEnvironmentPostProcessor 忽略, CloudFound是业界第一个开源Paas云平台
+		 * ConfigDataEnvironmentPostProcessor 负责解析各个地方的 application.properties 和 application.yaml
+		 * 				以前我们的配置文件的优先级 是由 ConfigFileApplicationListener 处理的 但是这个过期了, 现在是 ConfigDataEnvironmentPostProcessor
+		 * 				多环境配置是在这里决定的
+		 *
+		 * IntegrationPropertiesEnvironmentPostProcessor, spring全家桶有一个项目叫 spring integration
+		 * DebugAgentEnvironmentPostProcessor 根据配置情况, 决定是否要执行某个方法
+		 *
+		 * 如果有配置中心, 那这边可以把自己的放在最前面来处理
+		 */
 		for (EnvironmentPostProcessor postProcessor : getEnvironmentPostProcessors(application.getResourceLoader(),
 				event.getBootstrapContext())) {
 			postProcessor.postProcessEnvironment(environment, application);
