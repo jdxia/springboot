@@ -78,6 +78,10 @@ abstract class HealthEndpointSupport<C, T> {
 				return getHealth(apiVersion, group, securityContext, showAll, path, 1);
 			}
 		}
+
+		/**
+		 * groups 里面有 readiness, liveness
+		 */
 		return getHealth(apiVersion, this.groups.getPrimary(), securityContext, showAll, path, 0);
 	}
 

@@ -280,6 +280,9 @@ public abstract class Packager {
 
 	private void addMainAndStartAttributes(JarFile source, Manifest manifest) throws IOException {
 		String mainClass = getMainClass(source, manifest);
+		/**
+		 * getLauncherClassName 就有 org.springframework.boot.loader.JarLauncher
+		 */
 		String launcherClass = getLayout().getLauncherClassName();
 		if (launcherClass != null) {
 			Assert.state(mainClass != null, "Unable to find main class");

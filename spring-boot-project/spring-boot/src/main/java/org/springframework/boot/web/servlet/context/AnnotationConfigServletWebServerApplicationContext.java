@@ -201,6 +201,7 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		super.postProcessBeanFactory(beanFactory);
+		// 包扫描
 		if (this.basePackages != null && this.basePackages.length > 0) {
 			this.scanner.scan(this.basePackages);
 		}

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.jar.Manifest;
 
 import org.springframework.boot.loader.archive.Archive;
+import org.springframework.boot.loader.archive.JarFileArchive;
 
 /**
  * Base class for executable archive {@link Launcher}s.
@@ -45,6 +46,7 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	public ExecutableArchiveLauncher() {
 		try {
+			// 为当前应用创建一个 Archive 对象，可用于解析 jar 包（当前应用）中所有的信息
 			this.archive = createArchive();
 			this.classPathIndex = getClassPathIndex(this.archive);
 		}
@@ -69,14 +71,18 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	@Override
 	protected String getMainClass() throws Exception {
+		// 获取 jar 包（当前应用）的 Manifest 对象，也就是 META-INF/MANIFEST.MF 文件中的属性
 		Manifest manifest = this.archive.getManifest();
 		String mainClass = null;
 		if (manifest != null) {
+			// 获取 文件里面的 Start-Class 的值, 比如 com.study.Application
 			mainClass = manifest.getMainAttributes().getValue(START_CLASS_ATTRIBUTE);
 		}
 		if (mainClass == null) {
 			throw new IllegalStateException("No 'Start-Class' manifest entry specified in " + this);
 		}
+
+		// 返回当前应用的启动类
 		return mainClass;
 	}
 
@@ -102,11 +108,25 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 	@Override
 	protected Iterator<Archive> getClassPathArchivesIterator() throws Exception {
 		Archive.EntryFilter searchFilter = this::isSearchCandidate;
+		/**
+		 * archive即归档文件，这个概念在linux下比较常见；通常就是一个tar/zip格式的压缩包；而jar正是zip格式的。
+		 * SpringBoot抽象了Archive的概念，一个Archive可以是jar（JarFileArchive），也可以是文件目录（ExplodedArchive）；这样也就统一了访问资源的逻辑层
+		 *
+		 * 可以看下 isNestedArchive {@link JarLauncher#isNestedArchive(Archive.Entry)}
+		 *
+		 * getNestedArchives 可以看下  {@link JarFileArchive#getNestedArchives(Archive.EntryFilter, Archive.EntryFilter)}
+		 */
 		Iterator<Archive> archives = this.archive.getNestedArchives(searchFilter,
 				(entry) -> isNestedArchive(entry) && !isEntryIndexed(entry));
 		if (isPostProcessingClassPathArchives()) {
 			archives = applyClassPathArchivePostProcessing(archives);
 		}
+
+		/**
+		 * 返回找到的所有 JarFileArchive
+		 * `BOOT-INF/classes/` 目录对应一个 JarFileArchive（因为就是当前应用中的内容）
+		 * `BOOT-INF/lib/` 目录下的每个 jar 包对应一个 JarFileArchive
+		 */
 		return archives;
 	}
 

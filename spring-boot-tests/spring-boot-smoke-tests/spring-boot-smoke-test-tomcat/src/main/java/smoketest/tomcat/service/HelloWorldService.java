@@ -16,17 +16,31 @@
 
 package smoketest.tomcat.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import smoketest.tomcat.web.models.UserVo;
 
 @Component
 public class HelloWorldService {
+
+	private final static Logger logger = LoggerFactory.getLogger(HelloWorldService.class);
 
 	@Value("${test.name:World}")
 	private String name;
 
 	public String getHelloMessage() {
+		logger.info("==============>");
 		return "Hello " + this.name;
+	}
+
+
+	public Boolean studyValida(UserVo userVo) {
+		logger.info("==============> studyValida");
+
+
+		return Boolean.TRUE;
 	}
 
 }

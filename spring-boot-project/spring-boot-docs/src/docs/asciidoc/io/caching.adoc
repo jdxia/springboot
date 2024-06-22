@@ -68,7 +68,7 @@ include::{docs-java}/io/caching/provider/MyCacheManagerConfiguration.java[]
 
 NOTE: In the preceding example, an auto-configured `ConcurrentMapCacheManager` is expected.
 If that is not the case (either you provided your own config or a different cache provider was auto-configured), the customizer is not invoked at all.
-You can have as many customizers as you want, and you can also order them by using `@Order` or `Ordered`.
+You can have as many customizers as you want, and you can also order them by using `@com.fandf.test.entity.Order` or `Ordered`.
 
 
 

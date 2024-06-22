@@ -81,10 +81,13 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 
 	@Override
 	public Object getProperty(String name) {
+		// 如果name 不是 random. 开头的就忽略
 		if (!name.startsWith(PREFIX)) {
 			return null;
 		}
 		logger.trace(LogMessage.format("Generating random property for '%s'", name));
+		// 生成随机数, 比如 random.int, 根据后面是啥
+		// @Value(${random.int,100}) 100以内的随机数, 逗号后面不能有空格
 		return getRandomValue(name.substring(PREFIX.length()));
 	}
 
@@ -152,6 +155,7 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 			logger.trace("RandomValuePropertySource already present");
 			return;
 		}
+		// 添加 RandomValuePropertySource, 看这个类
 		RandomValuePropertySource randomSource = new RandomValuePropertySource(RANDOM_PROPERTY_SOURCE_NAME);
 		if (sources.get(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME) != null) {
 			sources.addAfter(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, randomSource);

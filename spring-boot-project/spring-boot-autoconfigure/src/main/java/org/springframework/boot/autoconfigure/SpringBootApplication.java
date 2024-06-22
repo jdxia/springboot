@@ -48,14 +48,14 @@ import org.springframework.data.repository.Repository;
  * @author Andy Wilkinson
  * @since 1.2.0
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@SpringBootConfiguration
-@EnableAutoConfiguration
-@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
-		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+@Target(ElementType.TYPE) //注解的适用范围
+@Retention(RetentionPolicy.RUNTIME) //生命周期
+@Documented  //表示注解可以记录在javadoc中
+@Inherited  //表示可以被子类继承该注解
+@SpringBootConfiguration // 相当于 @Configuration 注解, @Configuration里面还有@Component
+@EnableAutoConfiguration // 自动装配
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),  // 扩展点，自定义过滤器
+		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })  // 扫描的时候发现如果是配置类并且是自动配置类就过滤掉
 public @interface SpringBootApplication {
 
 	/**

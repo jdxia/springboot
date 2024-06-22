@@ -39,6 +39,7 @@ public class PropertiesPropertySourceLoader implements PropertySourceLoader {
 
 	private static final String XML_FILE_EXTENSION = ".xml";
 
+	// 可以解析properties或者xml结尾的配置文件
 	@Override
 	public String[] getFileExtensions() {
 		return new String[] { "properties", "xml" };

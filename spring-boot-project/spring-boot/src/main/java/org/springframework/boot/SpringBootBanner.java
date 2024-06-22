@@ -41,9 +41,11 @@ class SpringBootBanner implements Banner {
 
 	@Override
 	public void printBanner(Environment environment, Class<?> sourceClass, PrintStream printStream) {
+		// 先打印Banner内容
 		for (String line : BANNER) {
 			printStream.println(line);
 		}
+		// 打印SpringBoot的版本
 		String version = SpringBootVersion.getVersion();
 		version = (version != null) ? " (v" + version + ")" : "";
 		StringBuilder padding = new StringBuilder();

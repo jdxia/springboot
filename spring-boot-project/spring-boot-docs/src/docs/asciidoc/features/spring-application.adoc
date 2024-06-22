@@ -341,7 +341,7 @@ The following example shows a `CommandLineRunner` with a `run` method:
 include::{docs-java}/features/springapplication/commandlinerunner/MyCommandLineRunner.java[]
 ----
 
-If several `CommandLineRunner` or `ApplicationRunner` beans are defined that must be called in a specific order, you can additionally implement the `org.springframework.core.Ordered` interface or use the `org.springframework.core.annotation.Order` annotation.
+If several `CommandLineRunner` or `ApplicationRunner` beans are defined that must be called in a specific order, you can additionally implement the `org.springframework.core.Ordered` interface or use the `org.springframework.core.annotation.com.fandf.test.entity.Order` annotation.
 
 
 

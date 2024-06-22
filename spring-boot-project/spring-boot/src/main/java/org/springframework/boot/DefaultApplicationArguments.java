@@ -39,6 +39,7 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 
 	public DefaultApplicationArguments(String... args) {
 		Assert.notNull(args, "Args must not be null");
+		// 重点是source对象
 		this.source = new Source(args);
 		this.args = args;
 	}
@@ -73,14 +74,17 @@ public class DefaultApplicationArguments implements ApplicationArguments {
 	private static class Source extends SimpleCommandLinePropertySource {
 
 		Source(String[] args) {
+			// 这里, 看spring源码
 			super(args);
 		}
 
+		// 没有加 -- 的参数, 比如 java -jar springboot.jar 123
 		@Override
 		public List<String> getNonOptionArgs() {
 			return super.getNonOptionArgs();
 		}
 
+		// 加 -- 的参数, 比如 java -jar springboot.jar --k1=123
 		@Override
 		public List<String> getOptionValues(String name) {
 			return super.getOptionValues(name);

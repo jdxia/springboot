@@ -37,6 +37,7 @@ public interface PropertySourceLoader {
 	 * Returns the file extensions that the loader supports (excluding the '.').
 	 * @return the file extensions
 	 */
+	//可以支持哪种文件格式的解析
 	String[] getFileExtensions();
 
 	/**
@@ -49,6 +50,7 @@ public interface PropertySourceLoader {
 	 * @return a list property sources
 	 * @throws IOException if the source cannot be loaded
 	 */
+	// 解析配置文件，读出内容，封装成一个PropertySource<?>结合返回回去
 	List<PropertySource<?>> load(String name, Resource resource) throws IOException;
 
 }

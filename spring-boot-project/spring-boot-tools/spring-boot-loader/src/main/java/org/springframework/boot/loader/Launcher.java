@@ -50,11 +50,40 @@ public abstract class Launcher {
 	 */
 	protected void launch(String[] args) throws Exception {
 		if (!isExploded()) {
+			/**
+			 * 注册jar URL处理器
+			 * 里面有个方式判断是不是jar包启动
+			 *
+			 * 在系统属性中设置注册了自定义的URL协议处理器：org.springframework.boot.loader.jar.Handler。
+			 * 初始化URL的时候，如果URL中没有指定处理器，会去系统属性中查询
+			 */
 			JarFile.registerUrlProtocolHandler();
 		}
+		/**
+		 * 创建一个类加载器, 这边不是AppClassLoader, 而是 LaunchedURLClassLoader
+		 * 你把打好的jar包解压开来,你会发现,里面有一层一层包名,然后类名,
+		 * AppClassLoader加载类的时候, 只能加载准确路径的类, 但是LaunchedURLClassLoader可以加载jar包里面的类, 在jar包里面根据包名类名一层一层去找
+		 *
+		 * 如果你在idea里面也想要这个效果, 需要在springboot里面引入 spring-boot-loader 这个包, 并且在 org.springframework.boot.loader.JarLauncher#main(java.lang.String[]) 这里启动
+		 *
+		 * getClassPathArchivesIterator 看子类 {@link org.springframework.boot.loader.ExecutableArchiveLauncher#getClassPathArchivesIterator()}
+		 *
+		 * getClassPathArchives方法会去找lib目录下对应的第三方依赖JarFileArchive，同时也会找项目自身的JarFileArchive
+		 * 根据getClassPathArchives得到的JarFileArchive集合去创建类加载器ClassLoader。
+		 * 这里会构造一个LaunchedURLClassLoader类加载器，这个类加载器继承URLClassLoader，并使用这些JarFileArchive集合的URL构造成URLClassPath
+		 *
+		 * URLClassPath这个属性很重要，自定义ClassLoader，findClass就靠它了！
+		 * 可以关注一下构造LaunchedURLClassLoader时，archive.getUrl方法，这里就涉及到自定义URL协议处理器了，JarFile等。毕竟实现jar in jar功能靠他们这些小罗罗。
+		 */
 		ClassLoader classLoader = createClassLoader(getClassPathArchivesIterator());
 		String jarMode = System.getProperty("jarmode");
+
+		/**
+		 * getMainClass 是获取我们业务的main方法在的启动类, 重点
+		 * {@link ExecutableArchiveLauncher#getMainClass()}
+		 */
 		String launchClass = (jarMode != null && !jarMode.isEmpty()) ? JAR_MODE_LAUNCHER : getMainClass();
+		// 调用实际的引导类launch, 往下
 		launch(args, launchClass, classLoader);
 	}
 
@@ -79,10 +108,14 @@ public abstract class Launcher {
 	 * @since 2.3.0
 	 */
 	protected ClassLoader createClassLoader(Iterator<Archive> archives) throws Exception {
+		// <1> 获取所有 JarFileArchive 对应的 URL
 		List<URL> urls = new ArrayList<>(50);
 		while (archives.hasNext()) {
 			urls.add(archives.next().getUrl());
 		}
+
+		// <2> 创建 Spring Boot 自定义的 ClassLoader 类加载器，并设置父类加载器为当前线程的类加载器
+		// 通过它解析这些 URL，也就是加载 `BOOT-INF/classes/` 目录下的类和 `BOOT-INF/lib/` 目录下的所有 jar 包
 		return createClassLoader(urls.toArray(new URL[0]));
 	}
 
@@ -104,7 +137,13 @@ public abstract class Launcher {
 	 * @throws Exception if the launch fails
 	 */
 	protected void launch(String[] args, String launchClass, ClassLoader classLoader) throws Exception {
+		// 设置当前线程的 ClassLoader 为刚创建的类加载器
 		Thread.currentThread().setContextClassLoader(classLoader);
+		/**
+		 * 创建一个 MainMethodRunner 对象（main 方法执行器）
+		 * run往下, 执行你的 main 方法（反射）
+		 * 当前线程上下文类加载器去加载mainClassName
+		 */
 		createMainMethodRunner(launchClass, args, classLoader).run();
 	}
 
@@ -149,6 +188,7 @@ public abstract class Launcher {
 	}
 
 	protected final Archive createArchive() throws Exception {
+		// 获取 jar 包（当前应用）所在的绝对路径
 		ProtectionDomain protectionDomain = getClass().getProtectionDomain();
 		CodeSource codeSource = protectionDomain.getCodeSource();
 		URI location = (codeSource != null) ? codeSource.getLocation().toURI() : null;
@@ -156,10 +196,17 @@ public abstract class Launcher {
 		if (path == null) {
 			throw new IllegalStateException("Unable to determine code source archive");
 		}
+
+		// 当前 jar 包
 		File root = new File(path);
 		if (!root.exists()) {
 			throw new IllegalStateException("Unable to determine code source archive from " + root);
 		}
+
+		/**
+		 * 为当前 jar 包创建一个 JarFileArchive（根条目），需要通过它解析出 jar 包中的所有信息
+		 * 如果是文件夹的话则创建 ExplodedArchive（根条目）
+		 */
 		return (root.isDirectory() ? new ExplodedArchive(root) : new JarFileArchive(root));
 	}
 

@@ -25,6 +25,7 @@ package org.springframework.boot.web.server;
 @FunctionalInterface
 public interface ErrorPageRegistry {
 
+	// 添加错误页面
 	/**
 	 * Adds error pages that will be used when handling exceptions.
 	 * @param errorPages the error pages

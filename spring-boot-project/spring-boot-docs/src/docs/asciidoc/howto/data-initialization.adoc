@@ -128,7 +128,7 @@ Flyway supports SQL and Java https://flywaydb.org/documentation/concepts/callbac
 To use SQL-based callbacks, place the callback scripts in the `classpath:db/migration` directory.
 To use Java-based callbacks, create one or more beans that implement `Callback`.
 Any such beans are automatically registered with `Flyway`.
-They can be ordered by using `@Order` or by implementing `Ordered`.
+They can be ordered by using `@com.fandf.test.entity.Order` or by implementing `Ordered`.
 Beans that implement the deprecated `FlywayCallback` interface can also be detected, however they cannot be used alongside `Callback` beans.
 
 By default, Flyway autowires the (`@Primary`) `DataSource` in your context and uses that for migrations.

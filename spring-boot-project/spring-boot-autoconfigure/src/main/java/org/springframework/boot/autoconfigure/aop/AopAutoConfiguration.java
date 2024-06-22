@@ -43,6 +43,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @see EnableAspectJAutoProxy
  */
 @Configuration(proxyBeanMethods = false)
+// spring.aop.auto=true时开启AOP，或者没有配置spring.aop.auto时默认也是开启
 @ConditionalOnProperty(prefix = "spring.aop", name = "auto", havingValue = "true", matchIfMissing = true)
 public class AopAutoConfiguration {
 
@@ -51,14 +52,18 @@ public class AopAutoConfiguration {
 	static class AspectJAutoProxyingConfiguration {
 
 		@Configuration(proxyBeanMethods = false)
+		// 开启AOP的注解，使用JDK动态代理
 		@EnableAspectJAutoProxy(proxyTargetClass = false)
+		// spring.aop.proxy-target-class=false时才生效
 		@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "false")
 		static class JdkDynamicAutoProxyConfiguration {
 
 		}
 
 		@Configuration(proxyBeanMethods = false)
+		// 开启AOP的注解，使用CGLIB动态代理
 		@EnableAspectJAutoProxy(proxyTargetClass = true)
+		// spring.aop.proxy-target-class=true时生效，或者没有配置spring.aop.proxy-target-class时默认也生效
 		@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "true",
 				matchIfMissing = true)
 		static class CglibAutoProxyConfiguration {
@@ -68,6 +73,7 @@ public class AopAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	// 没有aspectj的依赖，但是又要使用cglib动态代理
 	@ConditionalOnMissingClass("org.aspectj.weaver.Advice")
 	@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "true",
 			matchIfMissing = true)
@@ -78,6 +84,8 @@ public class AopAutoConfiguration {
 			return (beanFactory) -> {
 				if (beanFactory instanceof BeanDefinitionRegistry) {
 					BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+					// 注册InfrastructureAdvisorAutoProxyCreator从而开启Spring AOP
+					// @EnableAspectJAutoProxy会注册AnnotationAwareAspectJAutoProxyCreator，也会开启Spring AOP但是同时有用解析AspectJ注解的功能
 					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
 					AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 				}

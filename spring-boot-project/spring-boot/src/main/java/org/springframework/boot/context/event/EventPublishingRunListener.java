@@ -27,7 +27,9 @@ import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.LivenessState;
 import org.springframework.boot.availability.ReadinessState;
+import org.springframework.boot.env.EnvironmentPostProcessorApplicationListener;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -82,6 +84,19 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	@Override
 	public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext,
 			ConfigurableEnvironment environment) {
+		/**
+		 * 会发布一个 ApplicationEnvironmentPreparedEvent 事件
+		 *
+		 * 重要
+		 * 会被 {@link EnvironmentPostProcessorApplicationListener#onApplicationEvent(ApplicationEvent)} 这个消费
+		 *
+		 * 有2个重要的监听器, 这些监听器都是通过前置操作从spring.factories配置文件中加载的
+		 * ConfigFileApplicationListener: 用来处理配置文件的，他会解析配置文件的配置，放到Environment中
+		 * BootstrapApplicationListener: 用来专门来跟配置中心交互的
+		 *
+		 * BootstrapApplicationListener 不在springboot工程里面, 在spring-cloud-commons的 bootstrap里面
+		 * {@link org.springframework.cloud.bootstrap.BootstrapApplicationListener#onApplicationEvent}
+		 */
 		this.initialMulticaster.multicastEvent(
 				new ApplicationEnvironmentPreparedEvent(bootstrapContext, this.application, this.args, environment));
 	}

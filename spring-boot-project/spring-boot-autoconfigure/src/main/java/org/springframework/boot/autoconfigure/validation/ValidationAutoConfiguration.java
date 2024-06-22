@@ -63,6 +63,7 @@ public class ValidationAutoConfiguration {
 		return factoryBean;
 	}
 
+	// 看这个 MethodValidationPostProcessor
 	@Bean
 	@ConditionalOnMissingBean(search = SearchStrategy.CURRENT)
 	public static MethodValidationPostProcessor methodValidationPostProcessor(Environment environment,

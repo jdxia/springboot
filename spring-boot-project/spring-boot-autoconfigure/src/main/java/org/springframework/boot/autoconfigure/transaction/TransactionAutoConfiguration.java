@@ -49,9 +49,12 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @since 1.3.0
  */
 @Configuration(proxyBeanMethods = false)
+// 即类路径下包含PlatformTransactionManager这个类时这个自动配置生效，这个类是spring事务的核心包，肯定引入了
 @ConditionalOnClass(PlatformTransactionManager.class)
+// 这个配置在括号中的4个配置类后才生效
 @AutoConfigureAfter({ JtaAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
 		DataSourceTransactionManagerAutoConfiguration.class, Neo4jDataAutoConfiguration.class })
+// 开启事务管理器配置类
 @EnableConfigurationProperties(TransactionProperties.class)
 public class TransactionAutoConfiguration {
 

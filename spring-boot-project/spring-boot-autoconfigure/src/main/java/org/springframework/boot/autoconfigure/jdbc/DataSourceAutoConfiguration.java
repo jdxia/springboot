@@ -54,26 +54,74 @@ import org.springframework.util.StringUtils;
  */
 @SuppressWarnings("deprecation")
 @Configuration(proxyBeanMethods = false)
+/**
+ * 必须同时存在java.sql.DataSource接口 和
+ * org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType类(spring-jdbc包中的类)，
+ * 此配置类才会生效
+ */
 @ConditionalOnClass({ DataSource.class, EmbeddedDatabaseType.class })
 @ConditionalOnMissingBean(type = "io.r2dbc.spi.ConnectionFactory")
 @AutoConfigureBefore(SqlInitializationAutoConfiguration.class)
+// 确保前缀为 spring.datasource 的配置属性项被加载到 bean DataSourceProperties
 @EnableConfigurationProperties(DataSourceProperties.class)
+/**
+ * DataSourcePoolMetadataProvidersConfiguration: 为了配置数据源对应的DataSourcePoolMetadataProvider组件实例
+ * DataSourceInitializationConfiguration: 用于执行一些数据库初始化脚本(执行sql),如DML,DDL
+ */
 @Import({ DataSourcePoolMetadataProvidersConfiguration.class,
 		DataSourceInitializationConfiguration.InitializationSpecificCredentialsDataSourceInitializationConfiguration.class,
 		DataSourceInitializationConfiguration.SharedCredentialsDataSourceInitializationConfiguration.class })
 public class DataSourceAutoConfiguration {
 
+	// 内嵌配置类
 	@Configuration(proxyBeanMethods = false)
+	// 仅在嵌入式数据库被使用时才生效
+	// 嵌入式数据库这里指的是 h2, derby, 或者 hsql
+	/**
+	 * 须满足内置数据源的条件
+	 * 1. 用户没有指定spring.datasource.type的配置
+	 * 2. 项目中存在com.zaxxer.hikari.HikariDataSource、
+	 * 		org.apache.tomcat.jdbc.pool.DataSource、
+	 * 		org.apache.commons.dbcp2.BasicDataSource
+	 * 		中其中任何一个类时(只要导入相关依赖即可)
+	 * 		注意: 当引入了spring-boot-starter-jdbc时,会传递依赖	HikariCP,
+	 * 		此时HikariDataSource会作为默认的数据源实现
+	 */
 	@Conditional(EmbeddedDatabaseCondition.class)
+	// 用户没有配置数据源实例才会生效(优先用户配置，意思是：如果用户在项目中定义了数据源组件，那这个配置就不生效了)
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+	/**
+	 * 当以上条件都满足了，下面导入的这个配置类才会起作用
+	 * 导入的这个配置类，仅配置了EmbeddedDatabase（它继承了DataSource接口，作为内嵌数据源）
+	 * 默认会依次尝试加载枚举类EmbeddedDatabaseConnection中定义的H2、DERBY、HSQL内嵌数据库的驱动类
+	 * 第一个加载成功的，将会创建对应的内嵌数据源
+	 */
 	@Import(EmbeddedDataSourceConfiguration.class)
 	protected static class EmbeddedDatabaseConfiguration {
 
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	/**
+	 * 池化数据源生效条件
+	 * 1. 用户精确的指定了spring.datasource.type的配置
+	 * 2. 用户导入了com.zaxxer.hikari.HikariDataSource、
+	 * 		org.apache.tomcat.jdbc.pool.DataSource、
+	 * 		org.apache.commons.dbcp2.BasicDataSource
+	 * 		其中任何一个依赖(这些类是以常量的方式定义在了DataSourceBuilder类中)
+	 * 	  注意: 当引入了spring-boot-starter-jdbc时,会传递依赖	HikariCP,
+	 */
 	@Conditional(PooledDataSourceCondition.class)
+	// 仅在没有类型为 DataSource/XADataSource 的 bean 定义时才生效
+	// 用户没有配置数据源实例才会生效(优先用户配置，意思是：如果用户在项目中定义了数据源组件，那这个配置就不生效了)
 	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+	/**
+	 * 导入针对不同数据库类型数据源连接组件的数据源配置，这些配置仅在使用了相应的数据源连接
+	 * 组件时才生效，一般开发人员只使用其中一种，所以也就只会有一个生效。
+	 * 这些配置的目的都是为了定义一个 数据源 bean dataSource
+	 *
+	 * 核心是 DataSourceConfiguration.Hikari.class
+	 */
 	@Import({ DataSourceConfiguration.Hikari.class, DataSourceConfiguration.Tomcat.class,
 			DataSourceConfiguration.Dbcp2.class, DataSourceConfiguration.OracleUcp.class,
 			DataSourceConfiguration.Generic.class, DataSourceJmxConfiguration.class })
@@ -85,17 +133,25 @@ public class DataSourceAutoConfiguration {
 	 * {@link AnyNestedCondition} that checks that either {@code spring.datasource.type}
 	 * is set or {@link PooledDataSourceAvailableCondition} applies.
 	 */
+	// 池化数据源的生效条件，所定义的条件中，有任何一个条件生效，即可生效
 	static class PooledDataSourceCondition extends AnyNestedCondition {
 
 		PooledDataSourceCondition() {
 			super(ConfigurationPhase.PARSE_CONFIGURATION);
 		}
 
+		// 用户精确配置了 spring.datasource.type属性
 		@ConditionalOnProperty(prefix = "spring.datasource", name = "type")
 		static class ExplicitType {
 
 		}
 
+		/**
+		 * 会依次尝试加载DataSourceBuilder中，预定义的这些类，如果加载到了，即生效
+		 * 		com.zaxxer.hikari.HikariDataSource、
+		 * 		org.apache.tomcat.jdbc.pool.DataSource、
+		 * 		org.apache.commons.dbcp2.BasicDataSource
+		 */
 		@Conditional(PooledDataSourceAvailableCondition.class)
 		static class PooledDataSourceAvailable {
 
@@ -106,14 +162,20 @@ public class DataSourceAutoConfiguration {
 	/**
 	 * {@link Condition} to test if a supported connection pool is available.
 	 */
+	// 池化数据源可用的生效条件
 	static class PooledDataSourceAvailableCondition extends SpringBootCondition {
 
 		@Override
 		public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 			ConditionMessage.Builder message = ConditionMessage.forCondition("PooledDataSource");
+
+			// 使用反射，尝试加载HikariDataSource、tomcat数据源、dbcp2数据源类，
 			if (DataSourceBuilder.findType(context.getClassLoader()) != null) {
+				// 加载到了则不为null，即满足条件
 				return ConditionOutcome.match(message.foundExactly("supported DataSource"));
 			}
+
+			// 一个都加载不到，不满足条件
 			return ConditionOutcome.noMatch(message.didNotFind("supported DataSource").atAll());
 		}
 
@@ -124,6 +186,7 @@ public class DataSourceAutoConfiguration {
 	 * If a pooled {@link DataSource} is available, it will always be preferred to an
 	 * {@code EmbeddedDatabase}.
 	 */
+	// 内嵌数据源生效条件
 	static class EmbeddedDatabaseCondition extends SpringBootCondition {
 
 		private static final String DATASOURCE_URL_PROPERTY = "spring.datasource.url";
@@ -136,13 +199,23 @@ public class DataSourceAutoConfiguration {
 			if (hasDataSourceUrlProperty(context)) {
 				return ConditionOutcome.noMatch(message.because(DATASOURCE_URL_PROPERTY + " is set"));
 			}
+
+			// 如果池化数据源生效条件满足，那内嵌数据源就不生效（意思是：池化数据源优先）
 			if (anyMatches(context, metadata, this.pooledCondition)) {
 				return ConditionOutcome.noMatch(message.foundExactly("supported pooled data source"));
 			}
+
+			// 到这里，那必然池化数据源生效条件不满足
+			// 此时，再去尝试加载定义在 枚举类EmbeddedDatabaseConnection中定义的内嵌数据源驱动类
+			// 		包括：org.h2.Driver、org.apache.derby.jdbc.EmbeddedDriver、org.hsqldb.jdbcDriver
 			EmbeddedDatabaseType type = EmbeddedDatabaseConnection.get(context.getClassLoader()).getType();
+
+			// 内嵌数据源驱动类，一个都没加载到，也返回不匹配
 			if (type == null) {
 				return ConditionOutcome.noMatch(message.didNotFind("embedded database").atAll());
 			}
+
+			// 加载到任何一个内嵌数据源驱动类，则匹配
 			return ConditionOutcome.match(message.found("embedded database").items(type));
 		}
 

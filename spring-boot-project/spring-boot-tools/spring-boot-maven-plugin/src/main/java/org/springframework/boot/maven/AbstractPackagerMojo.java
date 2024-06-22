@@ -139,11 +139,14 @@ public abstract class AbstractPackagerMojo extends AbstractDependencyFilterMojo 
 	protected <P extends Packager> P getConfiguredPackager(Supplier<P> supplier) {
 		P packager = supplier.get();
 		packager.setLayoutFactory(getLayoutFactory());
+		//mainClass指定入口类
 		packager.addMainClassTimeoutWarningListener(new LoggingMainClassTimeoutWarningListener(this::getLog));
 		packager.setMainClass(this.mainClass);
 		LayoutType layout = getLayout();
 		if (layout != null) {
 			getLog().info("Layout: " + layout);
+			//确定打包类型, 打包类型 可以看 LayoutType
+			//重点关心下layout 最终返回了 org.springframework.boot.loader.tools.Layouts.Jar
 			packager.setLayout(layout.layout());
 		}
 		if (this.layers == null) {

@@ -42,10 +42,19 @@ public abstract class SpringBootCondition implements Condition {
 
 	@Override
 	public final boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		// 针对每个条件注解进行条件判断
+
+		// 条件注解写在了哪个类上，或哪个方法上
 		String classOrMethodName = getClassOrMethodName(metadata);
 		try {
+			// 条件的判断结果
 			ConditionOutcome outcome = getMatchOutcome(context, metadata);
+
+			// 如果log的日志级别为trace，那就直接记录当前条件的判断结果
 			logOutcome(classOrMethodName, outcome);
+
+			// 将判断结果记录到ConditionEvaluationReport中
+			//ConditionEvaluationReportLoggingListener会在收到ContextRefreshedEvent事件后把判断结果用日志的方式打印出来
 			recordEvaluation(context, classOrMethodName, outcome);
 			return outcome.isMatch();
 		}
@@ -103,6 +112,7 @@ public abstract class SpringBootCondition implements Condition {
 
 	private void recordEvaluation(ConditionContext context, String classOrMethodName, ConditionOutcome outcome) {
 		if (context.getBeanFactory() != null) {
+			// 获取条件评估报告器，并将匹配结果添加到报告器中
 			ConditionEvaluationReport.get(context.getBeanFactory()).recordConditionEvaluation(classOrMethodName, this,
 					outcome);
 		}

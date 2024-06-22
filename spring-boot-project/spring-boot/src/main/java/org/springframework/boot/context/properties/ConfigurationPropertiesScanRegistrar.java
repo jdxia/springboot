@@ -57,7 +57,9 @@ class ConfigurationPropertiesScanRegistrar implements ImportBeanDefinitionRegist
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		//获取包扫描范围,默认扫描@ConfigurationPropertiesScan所在类的包和子包
 		Set<String> packagesToScan = getPackagesToScan(importingClassMetadata);
+		//执行包扫描,只扫描被@ConfigurationProperties标记的类
 		scan(registry, packagesToScan);
 	}
 
@@ -108,7 +110,9 @@ class ConfigurationPropertiesScanRegistrar implements ImportBeanDefinitionRegist
 	}
 
 	private void register(ConfigurationPropertiesBeanRegistrar registrar, Class<?> type) {
+		//如果被扫描到的类被标记了@Component注解,则不注册,否则会重复注册,但是由于beanName不通,会导致重复注册.
 		if (!isComponent(type)) {
+			//注册bean,bean的名称为prefix+配置类全类名
 			registrar.register(type);
 		}
 	}

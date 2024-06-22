@@ -263,6 +263,7 @@ public class JarFileArchive implements Archive {
 	 * Nested {@link Archive} iterator implementation backed by {@link JarEntry}.
 	 */
 	private class NestedArchiveIterator extends AbstractIterator<Archive> {
+		//  实现了 Iterator 有 next 和 hasNext, 看父类
 
 		NestedArchiveIterator(Iterator<JarEntry> iterator, EntryFilter searchFilter, EntryFilter includeFilter) {
 			super(iterator, searchFilter, includeFilter);

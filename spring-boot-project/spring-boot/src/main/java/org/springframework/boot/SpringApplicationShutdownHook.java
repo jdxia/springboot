@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
+import org.springframework.boot.web.server.GracefulShutdownCallback;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -70,6 +72,7 @@ class SpringApplicationShutdownHook implements Runnable {
 	}
 
 	void registerApplicationContext(ConfigurableApplicationContext context) {
+		// 往下
 		addRuntimeShutdownHookIfNecessary();
 		synchronized (SpringApplicationShutdownHook.class) {
 			assertNotInProgress();
@@ -80,12 +83,19 @@ class SpringApplicationShutdownHook implements Runnable {
 
 	private void addRuntimeShutdownHookIfNecessary() {
 		if (this.shutdownHookAdded.compareAndSet(false, true)) {
+			// 往下
 			addRuntimeShutdownHook();
 		}
 	}
 
 	void addRuntimeShutdownHook() {
 		try {
+			/**
+			 * 看当前类的 run 方法
+			 *
+			 * tomcat是在 {@link TomcatWebServer#shutDownGracefully(GracefulShutdownCallback)}
+			 * actuate 是在 {@link org.springframework.boot.actuate.context.ShutdownEndpoint#shutdown()}
+			 */
 			Runtime.getRuntime().addShutdownHook(new Thread(this, "SpringApplicationShutdownHook"));
 		}
 		catch (AccessControlException ex) {
@@ -111,8 +121,16 @@ class SpringApplicationShutdownHook implements Runnable {
 			closedContexts = new LinkedHashSet<>(this.closedContexts);
 			actions = new LinkedHashSet<>(this.handlers.getActions());
 		}
+		/**
+		 * 关闭 ConfigurableApplicationContext，并等待 context 变为 inactive，超时时间默认 10S。
+		 * 如果 context.close() 操作中存在非常耗时的同步操作 ，这里的超时等待不会生效，程序会阻塞在 context.close() 操作
+		 */
 		contexts.forEach(this::closeAndWait);
 		closedContexts.forEach(this::closeAndWait);
+
+		/**
+		 * 用户自定义的 Shutdown Action 可以添加到 this.handlers 中，SpringApplicationShutdownHook 在执行关闭任务时，会回调用户自定义的 Shutdown Action
+		 */
 		actions.forEach(Runnable::run);
 	}
 
@@ -139,6 +157,8 @@ class SpringApplicationShutdownHook implements Runnable {
 	 * @param context the context to clean
 	 */
 	private void closeAndWait(ConfigurableApplicationContext context) {
+		// 关闭 ConfigurableApplicationContext，等待 context 变为 inactive，超时时间默认 10
+
 		if (!context.isActive()) {
 			return;
 		}

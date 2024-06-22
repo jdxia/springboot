@@ -30,6 +30,7 @@ import org.springframework.boot.util.LambdaSafe;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.Assert;
 
+// Bean的后置处理器，它将 Bean 工厂中的所有 WebServerFactoryCustomizer 类型的 Bean 应用于 WebServerFactory 类型的 Bean
 /**
  * {@link BeanPostProcessor} that applies all {@link WebServerFactoryCustomizer} beans
  * from the bean factory to {@link WebServerFactory} beans.

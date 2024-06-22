@@ -98,6 +98,7 @@ public class DataSourcePoolMetricsAutoConfiguration {
 
 	}
 
+	// 连接池监控
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(HikariDataSource.class)
 	static class HikariDataSourceMetricsConfiguration {

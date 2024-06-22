@@ -35,6 +35,8 @@ import org.springframework.context.annotation.Import;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnAvailableEndpoint(endpoint = HealthEndpoint.class)
 @EnableConfigurationProperties(HealthEndpointProperties.class)
+// 加载了HealthEndpointConfiguration、ReactiveHealthEndpointConfiguration、HealthEndpointWebExtensionConfiguration、HealthEndpointReactiveWebExtensionConfiguration这几个类
+// 挨个看
 @Import({ HealthEndpointConfiguration.class, ReactiveHealthEndpointConfiguration.class,
 		HealthEndpointWebExtensionConfiguration.class, HealthEndpointReactiveWebExtensionConfiguration.class })
 public class HealthEndpointAutoConfiguration {

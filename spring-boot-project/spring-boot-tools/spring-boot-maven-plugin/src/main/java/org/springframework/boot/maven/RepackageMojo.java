@@ -203,21 +203,37 @@ public class RepackageMojo extends AbstractPackagerMojo {
 			getLog().debug("skipping repackaging as per configuration.");
 			return;
 		}
+
+		// 看这个
 		repackage();
 	}
 
 	private void repackage() throws MojoExecutionException {
+		//获得maven生成的普通jar包
 		Artifact source = getSourceArtifact(this.classifier);
+		//target为最终要生成的jar文件
 		File target = getTargetFile(this.finalName, this.classifier, this.outputDirectory);
+		//获取重新打包器，将重新打包成可执行jar文件
 		Repackager repackager = getRepackager(source.getFile());
+
+		//将artifacts转换成libraries
 		Libraries libraries = getLibraries(this.requiresUnpack);
 		try {
+			//获得启动脚本
 			LaunchScript launchScript = getLaunchScript();
+			//执行重新打包，生成最后fat jar
 			repackager.repackage(target, libraries, launchScript, parseOutputTimestamp());
 		}
 		catch (IOException ex) {
 			throw new MojoExecutionException(ex.getMessage(), ex);
 		}
+
+		/**
+		 * .jar.original 是普通jar包，不包含依赖
+		 * .jar 是可执行jar包，包含了pom中的所有依赖，可以直接用java -jar 命令执行
+		 *
+		 * 将原来的jar包增加“.original”后缀
+		 */
 		updateArtifact(source, target, repackager.getBackupFile());
 	}
 
@@ -240,6 +256,8 @@ public class RepackageMojo extends AbstractPackagerMojo {
 	}
 
 	private Repackager getRepackager(File source) {
+		//  new Repackager(source) 新建打包器
+		// getConfiguredPackager 往下
 		return getConfiguredPackager(() -> new Repackager(source));
 	}
 

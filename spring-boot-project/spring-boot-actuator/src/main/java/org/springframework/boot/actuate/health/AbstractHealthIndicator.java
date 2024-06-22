@@ -79,6 +79,7 @@ public abstract class AbstractHealthIndicator implements HealthIndicator {
 	public final Health health() {
 		Health.Builder builder = new Health.Builder();
 		try {
+			// 往下
 			doHealthCheck(builder);
 		}
 		catch (Exception ex) {
