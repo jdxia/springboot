@@ -97,6 +97,7 @@ public class DataSourceHealthIndicator extends AbstractHealthIndicator implement
 			builder.up().withDetail("database", "unknown");
 		}
 		else {
+			// 如果有datasource
 			doDataSourceHealthCheck(builder);
 		}
 	}

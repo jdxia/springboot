@@ -1,10 +1,20 @@
 server:
   port: 8083
   shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 2048 # 启用压缩的最小响应大小（默认值为2048）
+    mime-types: application/json,application/javascript
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      max: 500
+      min-spare: 100
+    accept-count: 800
+    max-connections: 1000
   servlet:
     encoding:
       charset: UTF-8
-      force: true
       encoding: UTF-8
       default-charset: UTF-8
 
@@ -14,6 +24,9 @@ logging:
 spring:
   messages:
     encoding: UTF-8
+  mvc:
+    servlet:
+      load-on-startup: 1
   main:
     banner-mode: off
     allow-circular-references: true
@@ -25,21 +38,73 @@ spring:
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
+
+# 配置参考: spring-boot-project/spring-boot-actuator-autoconfigure/out/production/resources/META-INF/additional-spring-configuration-metadata.json
+# 文档: https://springdoc.cn/spring-boot/actuator.html#actuator.endpoints.kubernetes-probes.lifecycle
+# http://127.0.0.1:8083/actuator
 management:
+  metrics.export.prometheus.enabled: true
+  server:
+    ssl:
+      enable: false
+    # port和address 如果配置了就要都配
+    port: 1234  #  指定访问监控方法的端口，与逻辑接口端口分离。如果不想将这些暴露在http中，可以设置 management.port = -1
+    address: 127.0.0.1  # 只允许127.0.0.1访问
+    base-path: /jk  # http://127.0.0.1:1234/jk/actuator  # 访问根路径: http://{ip}:{port}/jk/actuator
   health:
-    enable: true
-    show-details: always
-    db:
+    db:  # /health端点有很多自动配置的健康指示器：如redis、rabbitmq、db等组件。当你的项目有依赖对应组件的时候，这些健康指示器就会被自动装配，继而采集对应的信息。
       enabled: false
-    probes:
+    probes:  # 启用 livenessstate 和 readiness
       enabled: true
+    livenessstate:
+      enable: true
+    readinessstate:
+      enable: true
+  endpoint:
+    mappings:
+      enable: true
+    shutdown:
+      enabled: true # 启用该端点
+    beans:
+      enabled: true
+      # 端点会自动缓存不需要任何参数的读取操作的响应。 要配置端点缓存响应的时间，请使用其 cache.time-to-live 属性
+      cache:
+        time-to-live: 10s
+    env:
+      enabled: true  # 启用端点 env
+    metrics:   # http://127.0.0.1:8083/actuator/metrics
+      enabled: true
+    # 如果是 prometheus 那么要有 micrometer-registry-prometheus 这个包
+    prometheus:  # http://127.0.0.1:8083/actuator/prometheus
+      enabled: true
+    health:
+      # /health端点会聚合你程序的健康指标，来检查程序的健康情况。端点公开的应用健康信息取决于： show-details
+      # always: 对所有用户暴露详细信息
+      # never:  不展示详细信息，up或者down的状态，默认配置
+      # when-authorized: 详细信息将会展示给通过认证的用户。授权的角色可以通过 management.endpoint.health.roles 配置
+      show-details: always  # http://127.0.0.1:8083/actuator/health/ 就可以看到
+      logging:
+        slow-indicator-threshold: 10s  # 设置慢指标阈值为10秒
   endpoints:
-    enabled-by-default: true #暴露所有端点信息
+    enabled-by-default: true #暴露所有端点信息, 或者禁用所有
     web:
+      cors:
+        allowed-origins: '*'
+        allowed-methods: GET,POST
       exposure:
-        include: '*'  #以web方式暴露
+        # 默认情况下，只有health端点是通过HTTP和JMX暴露的
+        # 如果是 prometheus 那么要有 micrometer-registry-prometheus 这个包, pushGateway是 simpleclient_pushgateway
+        include: '*'  #以web方式暴露, 默认 health, 多个 beans,trace,prometheus
+#      base-path: "/monitor"  # http://127.0.0.1:8083/actuator 变成 http://127.0.0.1:8083/monitor
+#      base-path: "/actuator"  # http://127.0.0.1:8083/actuator
+  metrics:
     tags:
-      application: ${spring.application.name} # 暴露的数据中添加application label
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+
+
 
 test:
   name: xjd
