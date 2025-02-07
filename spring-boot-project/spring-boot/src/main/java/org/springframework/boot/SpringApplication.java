@@ -46,6 +46,7 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.boot.Banner.Mode;
+import org.springframework.boot.context.ContextIdApplicationContextInitializer;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
@@ -367,7 +368,7 @@ public class SpringApplication {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 
 			/**
-			 * 准备Environment, 准备外部化配置
+			 * 准备 Environment, 准备外部化配置
 			 *
 			 * 包括操作系统，JVM、ServletContext、properties、yaml等等配置, 解析properties文件
 			 * 会发布一个 ApplicationEnvironmentPreparedEvent
@@ -459,6 +460,8 @@ public class SpringApplication {
 		 * BootstrapRegistryInitializer 接口是初始化器, 这边会调用他的 initialize 方法
 		 * 在 initialize 方法里面, 你可以往这个引导容器里面添加对象, 以便在后面的步骤里面共享
 		 * DefaultBootstrapContext 就提供了一些注册的方法 register, 就用这个参数可以注册进来
+		 *
+		 * 在 new SpringApplication() 这个 构造函数里面 有扩展点的
 		 */
 		this.bootstrapRegistryInitializers.forEach((initializer) -> initializer.initialize(bootstrapContext));
 		return bootstrapContext;
@@ -471,14 +474,19 @@ public class SpringApplication {
 		 * 创建ApplicationServletEnvironment，里面添加了四个 PropertySource
 		 *  1. StubPropertySource {name='servletConfigInitParams'}
 		 * 	2. StubPropertySource {name='servletContextInitParams'}
-		 * 	3. PropertiesPropertySource {name='systemProperties'}
-		 * 	4. SystemEnvironmentPropertySource {name='systemEnvironment'}
+		 *
+		 * 上面2个 是在 org.springframework.web.context.support.StandardServletEnvironment#customizePropertySources(org.springframework.core.env.MutablePropertySources) 这里创建的
+		 * 也就是 getOrCreateEnvironment 里面的 ApplicationServletEnvironment
+		 *
+		 *
+		 * 	3. PropertiesPropertySource {name='systemProperties'}  jvm环境变量-D
+		 * 	4. SystemEnvironmentPropertySource {name='systemEnvironment'} 操作系统环境变量
 		 * 最形成PropertySourceList 里面有4个PropertySource, 如果获取kv的话, 第一个找到了就不去后面找了
 		 */
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
 
 		// 添加SimpleCommandLinePropertySource {name='commandLineArgs'}命令行参数相关，放在首位, 优先级最高
-		// 也就是 命令行参数能覆盖项目里面的application.properties
+		// 也就是 命令行参数能覆盖项目里面的 application.properties
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 
 		/**
@@ -543,7 +551,7 @@ public class SpringApplication {
 		// 将前面生成的Environment设置到Spring容器中
 		context.setEnvironment(environment);
 
-		// 将设置在SpringApplication上的beanNameGenerator、resourceLoader设置到Spring容器中
+		// 将设置在SpringApplication上的 beanNameGenerator、resourceLoader 设置到Spring容器中
 		postProcessApplicationContext(context);
 
 		// 利用 ApplicationContextInitializer 初始化Spring容器
@@ -580,7 +588,7 @@ public class SpringApplication {
 		 * spring.main.lazy-initialization=true
 		 */
 		if (this.lazyInitialization) {
-			// 添加了一个 LazyInitializationBeanFactoryPostProcessor, 会修改beanDefinition的lazyInit属性为true
+			// 添加了一个 LazyInitializationBeanFactoryPostProcessor, 会修改 beanDefinition 的 lazyInit 属性为true
 			context.addBeanFactoryPostProcessor(new LazyInitializationBeanFactoryPostProcessor());
 		}
 		context.addBeanFactoryPostProcessor(new PropertySourceOrderingBeanFactoryPostProcessor(context));
@@ -590,7 +598,13 @@ public class SpringApplication {
 		Set<Object> sources = getAllSources();
 		Assert.notEmpty(sources, "Sources must not be empty");
 
-		// 将启动配置类解析为BeanDefinition注册到Spring容器中, 还没开始配置类解析
+		/**
+		 *  将启动配置类解析为 BeanDefinition 注册到 Spring 容器中, 还没开始配置类解析
+		 *  这步也就是注册配置类
+		 *
+		 *  这个就是设置sources的
+		 * SpringApplication springApplication = new SpringApplication(SampleTomcatApplication.class);
+		 */
 		load(context, sources.toArray(new Object[0]));
 
 		// 发布 ApplicationPreparedEvent 事件，表示Spring容器已经准备好
@@ -600,12 +614,17 @@ public class SpringApplication {
 	private void refreshContext(ConfigurableApplicationContext context) {
 		// 默认true
 		if (this.registerShutdownHook) {
-			// 优雅关机
+			/**
+			 * 优雅关机, 最重要的优雅关机, tomcat的 是在
+			 * {@link org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext#onRefresh}
+			 */
 			shutdownHook.registerApplicationContext(context);
 		}
 
 		/**
 		 * 里面会刷新容器, 也会注册 web的优雅关机
+		 *
+		 * ServletWebServerApplicationContext
 		 */
 		refresh(context);
 	}
@@ -692,7 +711,9 @@ public class SpringApplication {
 			// 添加一些类型转化器，比如把properties文件中的字符串转化成各种类型
 			environment.setConversionService(new ApplicationConversionService());
 		}
+
 		// 添加SimpleCommandLinePropertySource {name='commandLineArgs'}，放在首位
+		// 重点
 		configurePropertySources(environment, args);
 
 		// 空方法
@@ -721,9 +742,11 @@ public class SpringApplication {
 				composite.addPropertySource(
 						new SimpleCommandLinePropertySource("springApplicationCommandLineArgs", args));
 				composite.addPropertySource(source);
+				// composite 就是命令行参数
 				sources.replace(name, composite);
 			}
 			else {
+				// 没有就把命令行参数放到 第一个
 				sources.addFirst(new SimpleCommandLinePropertySource(args));
 			}
 		}
@@ -794,8 +817,15 @@ public class SpringApplication {
 	 * @param context the application context
 	 */
 	protected void postProcessApplicationContext(ConfigurableApplicationContext context) {
-		// 注册BeanName生成器
+		/**
+		 * 注册BeanName生成器
+		 *
+		 * 这个 生成器可以通过这种来注入
+		 * SpringApplication springApplication = new SpringApplication(SampleTomcatApplication.class);
+		 * springApplication.setBeanNameGenerator(xx);
+		 */
 		if (this.beanNameGenerator != null) {
+			// 注册进去
 			context.getBeanFactory().registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR,
 					this.beanNameGenerator);
 		}
@@ -826,6 +856,9 @@ public class SpringApplication {
 			Class<?> requiredType = GenericTypeResolver.resolveTypeArgument(initializer.getClass(),
 					ApplicationContextInitializer.class);
 			Assert.isInstanceOf(requiredType, context, "Unable to call initializer.");
+			/**
+			 * 里面有个 {@link ContextIdApplicationContextInitializer#initialize(ConfigurableApplicationContext)}
+			 */
 			initializer.initialize(context);
 		}
 	}
@@ -901,6 +934,8 @@ public class SpringApplication {
 		if (this.environment != null) {
 			loader.setEnvironment(this.environment);
 		}
+
+		// 往下
 		loader.load();
 	}
 
@@ -957,6 +992,7 @@ public class SpringApplication {
 	 */
 	protected void refresh(ConfigurableApplicationContext applicationContext) {
 		// 一般默认会调用到 ServletWebServerApplicationContext 的 refresh方法
+		// 关注 ServletWebServerApplicationContext 的 onRefresh 方法
 		applicationContext.refresh();
 	}
 

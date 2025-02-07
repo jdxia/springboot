@@ -16,23 +16,83 @@
 
 package smoketest.tomcat.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
+import org.springframework.core.env.Environment;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import smoketest.tomcat.config.Result;
 import smoketest.tomcat.service.HelloWorldService;
+import smoketest.tomcat.web.models.UserVo;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import javax.annotation.Resource;
+import javax.validation.Valid;
+import javax.validation.Validator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@Controller
+
+@Validated
+/**
+ * 类似一个切面, 有 ValidationAutoConfiguration 这个自动注入类
+ * {@link ValidationAutoConfiguration#methodValidationPostProcessor(Environment, Validator, ObjectProvider)}
+ */
+@RestController
 public class SampleController {
 
-	@Autowired
+	private final static Logger log = LoggerFactory.getLogger(SampleController.class);
+
+	@Resource
 	private HelloWorldService helloWorldService;
 
+	// http://127.0.0.1:8083/
 	@GetMapping("/")
 	@ResponseBody
-	public String helloWorld() {
-		return this.helloWorldService.getHelloMessage();
+	public Result<String> helloWorld() {
+		return Result.success(this.helloWorldService.getHelloMessage());
+	}
+
+	@GetMapping("/test1")
+	@ResponseBody
+	public Result<Boolean> test1() {
+		UserVo userVo = new UserVo();
+
+		return Result.success(this.helloWorldService.studyValida(userVo));
+	}
+
+	// http://127.0.0.1:8083/valid
+	@PostMapping("/valid")
+	@ResponseBody
+	public Result<String> testValid(@RequestBody @Valid UserVo userVo, BindingResult bindingResult) {
+
+		log.info("===> 开始验证");
+
+		List<Map<String, String>> fieldErrors = bindingResult.getAllErrors()
+				.stream()
+				.map(error -> {
+					Map<String, String> fieldErrorMap = new HashMap<>();
+					if (error instanceof FieldError) {
+						FieldError fieldError = (FieldError) error;
+						fieldErrorMap.put("field", fieldError.getField());
+						fieldErrorMap.put("message", fieldError.getDefaultMessage());
+					} else {
+						// 对于 @Valid 验证的是类级别的错误，可能是 ObjectError
+						fieldErrorMap.put("field", error.getObjectName());
+						fieldErrorMap.put("message", error.getDefaultMessage());
+					}
+					return fieldErrorMap;
+				})
+				.collect(Collectors.toList());
+
+		log.error("参数验证里面错误信息: {}", fieldErrors);
+
+		return Result.success(this.helloWorldService.getHelloMessage());
 	}
 
 }

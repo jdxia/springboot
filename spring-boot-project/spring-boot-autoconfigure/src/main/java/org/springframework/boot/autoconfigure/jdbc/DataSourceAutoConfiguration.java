@@ -129,17 +129,25 @@ public class DataSourceAutoConfiguration {
 	 * {@link AnyNestedCondition} that checks that either {@code spring.datasource.type}
 	 * is set or {@link PooledDataSourceAvailableCondition} applies.
 	 */
+	// 池化数据源的生效条件，所定义的条件中，有任何一个条件生效，即可生效
 	static class PooledDataSourceCondition extends AnyNestedCondition {
 
 		PooledDataSourceCondition() {
 			super(ConfigurationPhase.PARSE_CONFIGURATION);
 		}
 
+		// 用户精确配置了 spring.datasource.type属性
 		@ConditionalOnProperty(prefix = "spring.datasource", name = "type")
 		static class ExplicitType {
 
 		}
 
+		/**
+		 * 会依次尝试加载DataSourceBuilder中，预定义的这些类，如果加载到了，即生效
+		 * 		com.zaxxer.hikari.HikariDataSource、
+		 * 		org.apache.tomcat.jdbc.pool.DataSource、
+		 * 		org.apache.commons.dbcp2.BasicDataSource
+		 */
 		@Conditional(PooledDataSourceAvailableCondition.class)
 		static class PooledDataSourceAvailable {
 
@@ -150,14 +158,20 @@ public class DataSourceAutoConfiguration {
 	/**
 	 * {@link Condition} to test if a supported connection pool is available.
 	 */
+	// 池化数据源可用的生效条件
 	static class PooledDataSourceAvailableCondition extends SpringBootCondition {
 
 		@Override
 		public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
 			ConditionMessage.Builder message = ConditionMessage.forCondition("PooledDataSource");
+
+			// 使用反射，尝试加载HikariDataSource、tomcat数据源、dbcp2数据源类，
 			if (DataSourceBuilder.findType(context.getClassLoader()) != null) {
+				// 加载到了则不为null，即满足条件
 				return ConditionOutcome.match(message.foundExactly("supported DataSource"));
 			}
+
+			// 一个都加载不到，不满足条件
 			return ConditionOutcome.noMatch(message.didNotFind("supported DataSource").atAll());
 		}
 
@@ -168,6 +182,7 @@ public class DataSourceAutoConfiguration {
 	 * If a pooled {@link DataSource} is available, it will always be preferred to an
 	 * {@code EmbeddedDatabase}.
 	 */
+	// 内嵌数据源生效条件
 	static class EmbeddedDatabaseCondition extends SpringBootCondition {
 
 		private static final String DATASOURCE_URL_PROPERTY = "spring.datasource.url";
@@ -180,13 +195,23 @@ public class DataSourceAutoConfiguration {
 			if (hasDataSourceUrlProperty(context)) {
 				return ConditionOutcome.noMatch(message.because(DATASOURCE_URL_PROPERTY + " is set"));
 			}
+
+			// 如果池化数据源生效条件满足，那内嵌数据源就不生效（意思是：池化数据源优先）
 			if (anyMatches(context, metadata, this.pooledCondition)) {
 				return ConditionOutcome.noMatch(message.foundExactly("supported pooled data source"));
 			}
+
+			// 到这里，那必然池化数据源生效条件不满足
+			// 此时，再去尝试加载定义在 枚举类EmbeddedDatabaseConnection中定义的内嵌数据源驱动类
+			// 		包括：org.h2.Driver、org.apache.derby.jdbc.EmbeddedDriver、org.hsqldb.jdbcDriver
 			EmbeddedDatabaseType type = EmbeddedDatabaseConnection.get(context.getClassLoader()).getType();
+
+			// 内嵌数据源驱动类，一个都没加载到，也返回不匹配
 			if (type == null) {
 				return ConditionOutcome.noMatch(message.didNotFind("embedded database").atAll());
 			}
+
+			// 加载到任何一个内嵌数据源驱动类，则匹配
 			return ConditionOutcome.match(message.found("embedded database").items(type));
 		}
 

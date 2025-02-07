@@ -20,72 +20,8 @@
 		</encoder>
 	</appender>
 
-	<!--    &lt;!&ndash; info日志输出 &ndash;&gt;-->
-	<!--    <appender name="InfoFile"-->
-	<!--              class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-	<!--        <File>${LOG_HOME}/info/info.log</File>-->
-	<!--        <encoder>-->
-	<!--            <pattern>${LOG_PATTERN}</pattern>-->
-	<!--            <charset>UTF-8</charset>-->
-	<!--        </encoder>-->
-	<!--        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
-	<!--            <FileNamePattern>${LOG_HOME}/info/info-%d{yyyy-MM-dd}.%i.log</FileNamePattern>-->
-	<!--            <MaxFileSize>2GB</MaxFileSize>-->
-	<!--            &lt;!&ndash;日志文件保留天数 &ndash;&gt;-->
-	<!--            <MaxHistory>30</MaxHistory>-->
-	<!--        </rollingPolicy>-->
-	<!--        <filter class="ch.qos.logback.classic.filter.LevelFilter">-->
-	<!--            <level>INFO</level>-->
-	<!--            <onMatch>ACCEPT</onMatch>-->
-	<!--            <onMismatch>DENY</onMismatch>-->
-	<!--        </filter>-->
-	<!--    </appender>-->
-
-	<!--    &lt;!&ndash; error日志输出 &ndash;&gt;-->
-	<!--    <appender name="ErrorFile"-->
-	<!--              class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-	<!--        <File>${LOG_HOME}/error/error.log</File>-->
-	<!--        <encoder>-->
-	<!--            <pattern>${LOG_PATTERN}</pattern>-->
-	<!--            <charset>UTF-8</charset>-->
-	<!--        </encoder>-->
-	<!--        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">-->
-	<!--            <FileNamePattern>${LOG_HOME}/error/error-%d{yyyy-MM-dd}.%i.log</FileNamePattern>-->
-	<!--            <MaxFilerSize>2GB</MaxFilerSize>-->
-	<!--            &lt;!&ndash;日志文件保留天数 &ndash;&gt;-->
-	<!--            <MaxHistory>30</MaxHistory>-->
-	<!--        </rollingPolicy>-->
-
-	<!--        <filter class="ch.qos.logback.classic.filter.LevelFilter">-->
-	<!--            <level>ERROR</level>-->
-	<!--            <onMatch>ACCEPT</onMatch>-->
-	<!--            <onMismatch>DENY</onMismatch>-->
-	<!--        </filter>-->
-	<!--    </appender>-->
-
-	<!--    <appender name="async-InfoFile" class="ch.qos.logback.classic.AsyncAppender">-->
-	<!--        &lt;!&ndash; 不丢失日志.默认的256/5,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 &ndash;&gt;-->
-	<!--        <discardingThreshold>0</discardingThreshold>-->
-	<!--        &lt;!&ndash;  更改默认的队列的深度,该值会影响性能.默认值为256  &ndash;&gt;-->
-	<!--        <queueSize>512</queueSize>-->
-	<!--        &lt;!&ndash; 引用同步，将其包装为异步 &ndash;&gt;-->
-	<!--        <appender-ref ref="InfoFile"/>-->
-	<!--    </appender>-->
-
-	<!--    <appender name="async-ErrorFile" class="ch.qos.logback.classic.AsyncAppender">-->
-	<!--        &lt;!&ndash; 不丢失日志.默认的256/5,如果队列的80%已满,则会丢弃TRACT、DEBUG、INFO级别的日志 &ndash;&gt;-->
-	<!--        <discardingThreshold>0</discardingThreshold>-->
-	<!--        &lt;!&ndash;  更改默认的队列的深度,该值会影响性能.默认值为256  &ndash;&gt;-->
-	<!--        <queueSize>512</queueSize>-->
-	<!--        &lt;!&ndash; 引用同步，将其包装为异步 &ndash;&gt;-->
-	<!--        <appender-ref ref="ErrorFile"/>-->
-	<!--    </appender>-->
-
-	<!--系统操作日志-->
 	<root level="info">
 		<appender-ref ref="console"/>
-		<!--        <appender-ref ref="async-InfoFile"/>-->
-		<!--        <appender-ref ref="async-ErrorFile"/>-->
 	</root>
 
 

@@ -50,55 +50,65 @@ import org.springframework.util.StringUtils;
 @ConfigurationProperties(prefix = "spring.datasource")
 public class DataSourceProperties implements BeanClassLoaderAware, InitializingBean {
 
+	// 用户注入容器的类加载器
 	private ClassLoader classLoader;
 
 	/**
 	 * Whether to generate a random datasource name.
 	 */
+	// 是否要随机生成一个数据源名称
 	private boolean generateUniqueName = true;
 
 	/**
 	 * Datasource name to use if "generate-unique-name" is false. Defaults to "testdb"
 	 * when using an embedded database, otherwise null.
 	 */
+	// 数据源的名称
 	private String name;
 
 	/**
 	 * Fully qualified name of the connection pool implementation to use. By default, it
 	 * is auto-detected from the classpath.
 	 */
+	// 用于精确指定用户要使用的数据源类型的全类名
 	private Class<? extends DataSource> type;
 
 	/**
 	 * Fully qualified name of the JDBC driver. Auto-detected based on the URL by default.
 	 */
+	// 数据源驱动的全类名
 	private String driverClassName;
 
 	/**
 	 * JDBC URL of the database.
 	 */
+	// 数据库连接地址
 	private String url;
 
 	/**
 	 * Login username of the database.
 	 */
+	// 数据库用户名
 	private String username;
 
 	/**
 	 * Login password of the database.
 	 */
+	// 数据库密码
 	private String password;
 
 	/**
 	 * JNDI location of the datasource. Class, url, username and password are ignored when
 	 * set.
 	 */
+	// jndi名字
 	private String jndiName;
 
 	/**
 	 * Mode to apply when determining if DataSource initialization should be performed
 	 * using the available DDL and DML scripts.
 	 */
+	// 是否在数据源初始化后，执行配置的sql脚本
 	@Deprecated
 	private org.springframework.boot.jdbc.DataSourceInitializationMode initializationMode = org.springframework.boot.jdbc.DataSourceInitializationMode.EMBEDDED;
 
@@ -106,59 +116,69 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * Platform to use in the DDL or DML scripts (such as schema-${platform}.sql or
 	 * data-${platform}.sql).
 	 */
+	// 指定要执行的脚本，schema-${platform}.sql 和 data-${platform}.sql
 	@Deprecated
 	private String platform = "all";
 
 	/**
 	 * Schema (DDL) script resource references.
 	 */
+	// DDL脚本
 	private List<String> schema;
 
 	/**
 	 * Username of the database to execute DDL scripts (if different).
 	 */
+	// 执行DDL脚本所使用的用户名(如果不同于之前的用户名的话)
 	@Deprecated
 	private String schemaUsername;
 
 	/**
 	 * Password of the database to execute DDL scripts (if different).
 	 */
+	// 执行DDL脚本所使用的密码(如果不同于之前的密码的话)
 	@Deprecated
 	private String schemaPassword;
 
 	/**
 	 * Data (DML) script resource references.
 	 */
+	// DML脚本
 	@Deprecated
 	private List<String> data;
 
 	/**
 	 * Username of the database to execute DML scripts (if different).
 	 */
+	// 执行DML脚本所使用的用户名(如果不同于之前的用户名的话)
 	@Deprecated
 	private String dataUsername;
 
 	/**
 	 * Password of the database to execute DML scripts (if different).
 	 */
+	// 执行DML脚本所使用的密码(如果不同于之前的密码的话)
 	@Deprecated
 	private String dataPassword;
 
 	/**
 	 * Whether to stop if an error occurs while initializing the database.
 	 */
+	// 当初始化sql脚本发生错误时，是否继续
 	@Deprecated
 	private boolean continueOnError = false;
 
 	/**
 	 * Statement separator in SQL initialization scripts.
 	 */
+	// sql初始化脚本分隔符
 	@Deprecated
 	private String separator = ";";
 
 	/**
 	 * SQL scripts encoding.
 	 */
+	// sql初始化脚字符本编码格式
 	@Deprecated
 	private Charset sqlScriptEncoding;
 
@@ -168,8 +188,10 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 */
 	private EmbeddedDatabaseConnection embeddedDatabaseConnection;
 
+	// XA全局事务相关配置
 	private Xa xa = new Xa();
 
+	// 唯一数据源名称
 	private String uniqueName;
 
 	@Override
@@ -179,6 +201,8 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		// 依次尝试加载 H2、DERBY、HSQL的驱动，返回第一个成功加载的驱动
+		// 那如果我指定了内嵌数据源类型，但是afterPropertiesSet是后面执行的，那这个值就被这里给覆盖了
 		if (this.embeddedDatabaseConnection == null) {
 			this.embeddedDatabaseConnection = EmbeddedDatabaseConnection.get(this.classLoader);
 		}
@@ -189,9 +213,37 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * @return a {@link DataSourceBuilder} initialized with the customizations defined on
 	 * this instance
 	 */
+	// 这里使用数据源属性配置类DataSourceProperties，构建DataSourceBuilder
+	// 将会使用DataSourceBuilder来构建数据源
 	public DataSourceBuilder<?> initializeDataSourceBuilder() {
-		return DataSourceBuilder.create(getClassLoader()).type(getType()).driverClassName(determineDriverClassName())
-				.url(determineUrl()).username(determineUsername()).password(determinePassword());
+		return DataSourceBuilder.create(getClassLoader()).type(
+				// 即: spring.datasource.type的配置
+				getType()
+				).driverClassName(
+						// 确定驱动类
+						//		1. 如果有设置spring.datasource.driver-class-name，直接返回
+						// 		2. 如果上面还不能确定，并且如果有设置spring.datasource.url，这个url必须以jdbc开头(否则报错),
+						//		   然后从该url上截取，从DatabaseDriver中的常用驱动枚举类获取对应的驱动
+						//		3. 如果上面还不能确定，则使用embeddedDatabaseConnection内嵌数据源连接的指定的驱动类
+						// 		4. 现在还不能确定的话，就直接抛异常了
+						determineDriverClassName())
+				.url(
+						// 确定数据库连接地址
+						//		1. 如果有设置spring.datasource.url，直接返回
+						//		2. 如果上面还不能确定, 则须先确定数据库名称，即spring.datasource.name配置或默认的testdb
+						//		   然后使用embeddedDatabaseConnection.getUrl(数据库名称)获取连接地址
+						// 		3. 现在还不能确定的话，就直接抛异常了
+						determineUrl()).username(
+								// 确定用户名
+								//		1. 如果有设置spring.datasource.username，直接返回
+								//		2. 如果上面确定的驱动类是HSQL或H2或DERBY中的任何一个，则返回“sa”
+								//		3. 以上不能确定的话，返回null
+								determineUsername()).password(
+										// 确定密码
+										//		1. 如果有设置spring.datasource.password，直接返回
+										//		2. 如果上面确定的驱动类是HSQL或H2或DERBY中的任何一个，则返回空字符串
+										// 		3. 以上不能确定的话，返回null
+										determinePassword());
 	}
 
 	public boolean isGenerateUniqueName() {
@@ -236,18 +288,28 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * @return the driver to use
 	 * @since 1.4.0
 	 */
+	// 确定驱动类
+	// DataSourceConfiguration中定义的3个组件都是会调用到这个方法
 	public String determineDriverClassName() {
+
+		// 如果设置了spring.datasource.driverClassName，尝试加载这个类，并返回
 		if (StringUtils.hasText(this.driverClassName)) {
 			Assert.state(driverClassIsLoadable(), () -> "Cannot load driver class: " + this.driverClassName);
 			return this.driverClassName;
 		}
 		String driverClassName = null;
+
+		// 如果有设置spring.datasource.url， 则从DatabaseDriver枚举值中查找
 		if (StringUtils.hasText(this.url)) {
 			driverClassName = DatabaseDriver.fromJdbcUrl(this.url).getDriverClassName();
 		}
+
+		// 如果上面还不能确定， 则使用embeddedDatabaseConnection获取驱动类(这个时候，就要使用内嵌数据源了)
 		if (!StringUtils.hasText(driverClassName)) {
 			driverClassName = this.embeddedDatabaseConnection.getDriverClassName();
 		}
+
+		// 如果此时还不能确定驱动类，就要抛异常了
 		if (!StringUtils.hasText(driverClassName)) {
 			throw new DataSourceBeanCreationException("Failed to determine a suitable driver class", this,
 					this.embeddedDatabaseConnection);
@@ -255,6 +317,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 		return driverClassName;
 	}
 
+	// 尝试反射加载驱动类
 	private boolean driverClassIsLoadable() {
 		try {
 			ClassUtils.forName(this.driverClassName, null);
@@ -287,6 +350,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * @return the url to use
 	 * @since 1.4.0
 	 */
+	// 确定数据库连接地址
 	public String determineUrl() {
 		if (StringUtils.hasText(this.url)) {
 			return this.url;
@@ -305,6 +369,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * @return the database name to use or {@code null}
 	 * @since 2.0.0
 	 */
+	// 确定数据库名称
 	public String determineDatabaseName() {
 		if (this.generateUniqueName) {
 			if (this.uniqueName == null) {
@@ -339,6 +404,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * @return the username to use
 	 * @since 1.4.0
 	 */
+	// 确定数据库用户名
 	public String determineUsername() {
 		if (StringUtils.hasText(this.username)) {
 			return this.username;
@@ -367,6 +433,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	 * @return the password to use
 	 * @since 1.4.0
 	 */
+	// 确定数据库密码
 	public String determinePassword() {
 		if (StringUtils.hasText(this.password)) {
 			return this.password;
@@ -535,6 +602,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 	/**
 	 * XA Specific datasource settings.
 	 */
+	// XA全局事务配置
 	public static class Xa {
 
 		/**

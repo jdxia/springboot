@@ -185,17 +185,34 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		WebServer webServer = this.webServer;
 		ServletContext servletContext = getServletContext();
 		if (webServer == null && servletContext == null) {
+
+			/**
+			 * start 可以看下 FlightRecorderApplicationStartup
+			 * org.springframework.core.metrics.jfr.FlightRecorderApplicationStartup#start(java.lang.String)
+			 * 这是jfr的
+			 */
 			StartupStep createWebServer = this.getApplicationStartup().start("spring.boot.webserver.create");
 
-			// 工厂, 有jetty也有tomcat
+			// 工厂, 有jetty也有tomcat, 重点
 			ServletWebServerFactory factory = getWebServerFactory();
 			createWebServer.tag("factory", factory.getClass().toString());
+
+			// org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getWebServer
 			this.webServer = factory.getWebServer(getSelfInitializer());
+
 			createWebServer.end();
 
 			// 优雅关机
 			getBeanFactory().registerSingleton("webServerGracefulShutdown",
 					new WebServerGracefulShutdownLifecycle(this.webServer));
+
+			/**
+			 * 会发送, ServletWebServerInitializedEvent 事件
+			 * {@link org.springframework.boot.web.servlet.context.WebServerStartStopLifecycle#start()}
+			 *
+			 * SpringCloud提供了一个抽象类 AbstractAutoServiceRegistration，实现了对WebServerInitializedEvent（ServletWebServerInitializedEvent的父类）事件的监听
+			 * 一般不同的注册中心都会去继承这个类，监听项目启动，实现往注册中心服务端进行注册
+			 */
 			getBeanFactory().registerSingleton("webServerStartStop",
 					new WebServerStartStopLifecycle(this, this.webServer));
 		}
@@ -234,6 +251,8 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 			throw new ApplicationContextException("Unable to start ServletWebServerApplicationContext due to multiple "
 					+ "ServletWebServerFactory beans : " + StringUtils.arrayToCommaDelimitedString(beanNames));
 		}
+
+		// TomcatServletWebServerFactory
 		return getBeanFactory().getBean(beanNames[0], ServletWebServerFactory.class);
 	}
 

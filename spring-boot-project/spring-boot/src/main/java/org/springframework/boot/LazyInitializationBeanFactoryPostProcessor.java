@@ -53,7 +53,7 @@ public final class LazyInitializationBeanFactoryPostProcessor implements BeanFac
 		for (String beanName : beanFactory.getBeanDefinitionNames()) {
 			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
 			if (beanDefinition instanceof AbstractBeanDefinition) {
-				// 这里
+				// 这里, 往下
 				postProcess(beanFactory, filters, beanName, (AbstractBeanDefinition) beanDefinition);
 			}
 		}

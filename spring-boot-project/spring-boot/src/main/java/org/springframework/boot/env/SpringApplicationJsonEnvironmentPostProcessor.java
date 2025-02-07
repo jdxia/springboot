@@ -94,7 +94,7 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 		MutablePropertySources propertySources = environment.getPropertySources();
 		// 这边解析参数是环境变量或者命令行的参数, 这个时候 properties 文件还没有解析
-		// 所以 --spring.application.json=xxx 不能配置在 properties 文件中
+		// 所以 --spring.application.json=xxx 不能配置在 properties 文件中, value 为一个json字符串
 		propertySources.stream().map(JsonPropertyValue::get).filter(Objects::nonNull).findFirst()
 				.ifPresent((v) -> processJson(environment, v));
 	}

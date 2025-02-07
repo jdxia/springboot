@@ -334,6 +334,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			for (AutoConfigurationImportFilter filter : filters) {
 				invokeAwareMethods(filter);
 			}
+			// 往下
 			this.configurationClassFilter = new ConfigurationClassFilter(this.beanClassLoader, filters);
 		}
 		return this.configurationClassFilter;
@@ -441,12 +442,15 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			String[] candidates = StringUtils.toStringArray(configurations);
 			boolean skipped = false;
 
-			// 逐个利用AutoConfigurationImportFilter来判断所有的自动配置类的条件是否匹配，匹配结果存在match数组中
-			// 先利用OnBeanCondition进行过滤
-			// 再利用OnClassCondition进行过滤
-			// 再利用OnWebApplicationCondition进行过滤
+			/**
+			 * 逐个利用AutoConfigurationImportFilter来判断所有的自动配置类的条件是否匹配，匹配结果存在match数组中
+			 * 先利用OnBeanCondition进行过滤
+			 * 再利用OnClassCondition进行过滤
+			 * 再利用OnWebApplicationCondition进行过滤
+			 */
 			for (AutoConfigurationImportFilter filter : this.filters) {
 				// match 重点
+				// 会开多线程
 				boolean[] match = filter.match(candidates, this.autoConfigurationMetadata);
 				for (int i = 0; i < match.length; i++) {
 					if (!match[i]) {
@@ -506,6 +510,12 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 		public void setResourceLoader(ResourceLoader resourceLoader) {
 			this.resourceLoader = resourceLoader;
 		}
+
+		/**
+		 * 可以看spring源码
+		 * 先调用Group的process方法
+		 * 再调用Group的selectImports方法
+		 */
 
 		// autoConfigurationMetadata：自动化配置注解元数据对象，是PropertiesAutoConfigurationMetadata的实例对象
 		@Override

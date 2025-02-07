@@ -45,6 +45,7 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	public ExecutableArchiveLauncher() {
 		try {
+			// 为当前应用创建一个 Archive 对象，可用于解析 jar 包（当前应用）中所有的信息
 			this.archive = createArchive();
 			this.classPathIndex = getClassPathIndex(this.archive);
 		}
@@ -69,7 +70,7 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	@Override
 	protected String getMainClass() throws Exception {
-		// 获取jar包里面的 MAINFEST.MF 文件内容
+		// 获取 jar 包（当前应用）的 Manifest 对象，也就是 META-INF/MANIFEST.MF 文件中的属性
 		Manifest manifest = this.archive.getManifest();
 		String mainClass = null;
 		if (manifest != null) {
@@ -79,6 +80,8 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 		if (mainClass == null) {
 			throw new IllegalStateException("No 'Start-Class' manifest entry specified in " + this);
 		}
+
+		// 返回当前应用的启动类
 		return mainClass;
 	}
 
@@ -116,6 +119,10 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 		if (isPostProcessingClassPathArchives()) {
 			archives = applyClassPathArchivePostProcessing(archives);
 		}
+
+		// 返回找到的所有 JarFileArchive
+		// `BOOT-INF/classes/` 目录对应一个 JarFileArchive（因为就是当前应用中的内容）
+		// `BOOT-INF/lib/` 目录下的每个 jar 包对应一个 JarFileArchive
 		return archives;
 	}
 

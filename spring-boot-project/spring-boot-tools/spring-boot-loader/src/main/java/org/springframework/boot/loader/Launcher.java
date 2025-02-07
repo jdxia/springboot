@@ -91,10 +91,14 @@ public abstract class Launcher {
 	 * @since 2.3.0
 	 */
 	protected ClassLoader createClassLoader(Iterator<Archive> archives) throws Exception {
+		// <1> 获取所有 JarFileArchive 对应的 URL
 		List<URL> urls = new ArrayList<>(50);
 		while (archives.hasNext()) {
 			urls.add(archives.next().getUrl());
 		}
+
+		// <2> 创建 Spring Boot 自定义的 ClassLoader 类加载器，并设置父类加载器为当前线程的类加载器
+		// 通过它解析这些 URL，也就是加载 `BOOT-INF/classes/` 目录下的类和 `BOOT-INF/lib/` 目录下的所有 jar 包
 		return createClassLoader(urls.toArray(new URL[0]));
 	}
 
@@ -116,9 +120,10 @@ public abstract class Launcher {
 	 * @throws Exception if the launch fails
 	 */
 	protected void launch(String[] args, String launchClass, ClassLoader classLoader) throws Exception {
-		// 设置到当前线程的上下文类加载器
+		// 设置当前线程的 ClassLoader 为刚创建的类加载器
 		Thread.currentThread().setContextClassLoader(classLoader);
-		// run往下
+		// 创建一个 MainMethodRunner 对象（main 方法执行器）
+		// run往下, 执行你的 main 方法（反射）
 		createMainMethodRunner(launchClass, args, classLoader).run();
 	}
 
@@ -163,6 +168,7 @@ public abstract class Launcher {
 	}
 
 	protected final Archive createArchive() throws Exception {
+		// 获取 jar 包（当前应用）所在的绝对路径
 		ProtectionDomain protectionDomain = getClass().getProtectionDomain();
 		CodeSource codeSource = protectionDomain.getCodeSource();
 		URI location = (codeSource != null) ? codeSource.getLocation().toURI() : null;
@@ -170,10 +176,15 @@ public abstract class Launcher {
 		if (path == null) {
 			throw new IllegalStateException("Unable to determine code source archive");
 		}
+
+		// 当前 jar 包
 		File root = new File(path);
 		if (!root.exists()) {
 			throw new IllegalStateException("Unable to determine code source archive from " + root);
 		}
+
+		// 为当前 jar 包创建一个 JarFileArchive（根条目），需要通过它解析出 jar 包中的所有信息
+		// 如果是文件夹的话则创建 ExplodedArchive（根条目）
 		return (root.isDirectory() ? new ExplodedArchive(root) : new JarFileArchive(root));
 	}
 

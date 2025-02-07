@@ -62,7 +62,7 @@ class AutoConfigurationSorter {
 		// Then sort by order
 		// 按照@AutoConfigureOrder指定的顺序排续
 		orderedClassNames.sort((o1, o2) -> {
-			//如果配置类没有指定order,则getOrder方法将会给与默认值0
+			//如果配置类没有指定 AutoConfigureOrder , 则getOrder方法将会给与默认值0
 			int i1 = classes.get(o1).getOrder();
 			int i2 = classes.get(o2).getOrder();
 			return Integer.compare(i1, i2);
@@ -80,6 +80,7 @@ class AutoConfigurationSorter {
 		Set<String> sorted = new LinkedHashSet<>();
 		Set<String> processing = new LinkedHashSet<>();
 		while (!toSort.isEmpty()) {
+			// 往下
 			doSortByAfterAnnotation(classes, toSort, sorted, processing, null);
 		}
 		sorted.retainAll(classNames);

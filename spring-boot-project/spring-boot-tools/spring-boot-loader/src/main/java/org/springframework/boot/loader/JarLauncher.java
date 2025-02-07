@@ -39,9 +39,12 @@ public class JarLauncher extends ExecutableArchiveLauncher {
 	private static final String DEFAULT_CLASSPATH_INDEX_LOCATION = "BOOT-INF/classpath.idx";
 
 	static final EntryFilter NESTED_ARCHIVE_ENTRY_FILTER = (entry) -> {
+		// 只接受 `BOOT-INF/classes/` 目录
 		if (entry.isDirectory()) {
 			return entry.getName().equals("BOOT-INF/classes/");
 		}
+
+		// 只接受 `BOOT-INF/lib/` 目录下的 jar 包
 		return entry.getName().startsWith("BOOT-INF/lib/");
 	};
 
@@ -85,6 +88,7 @@ public class JarLauncher extends ExecutableArchiveLauncher {
 		return NESTED_ARCHIVE_ENTRY_FILTER.matches(entry);
 	}
 
+	// 参考 Oracle 官方对于 jar 的说明 https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html
 	// jar包启动的时候, 是用这个来启动的, 和idea里面的不一样
 	public static void main(String[] args) throws Exception {
 		/**
@@ -102,6 +106,8 @@ public class JarLauncher extends ExecutableArchiveLauncher {
 		 * 在解压jar包后的根目录下运行 java org.springframework.boot.loader.JarLauncher。项目引导类（META-INF/MANIFEST.MF文件中的Start-Class属性）被JarLauncher加载并执行。
 		 * 如果直接运行Start-Class类，会报错ClassNotFoundException。
 		 * Spring Boot依赖的jar文件均存放在BOOT-INF/lib目录下。JarLauncher会将这些jar文件作为Start-Class的类库依赖。
+		 *
+		 * 先看 new JarLauncher() 的父类
 		 *
 		 * 看 launch 方法, 重点
 		 * 调用父类Launcher中的launch()方法启动程序

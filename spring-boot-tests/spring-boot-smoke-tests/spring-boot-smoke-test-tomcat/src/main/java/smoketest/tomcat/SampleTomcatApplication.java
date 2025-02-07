@@ -24,12 +24,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync;
 
-import java.net.URL;
-import java.net.URLClassLoader;
 
+@EnableAsync
 @SpringBootApplication
 public class SampleTomcatApplication {
 
@@ -62,11 +61,12 @@ public class SampleTomcatApplication {
 		 *
 		 * META-INF内容
 		 * Main-Class是 org.springframework.boot.loader.JarLauncher ，即jar启动的Main函数
-		 * Start-Class是smoketest.tomcat.SampleTomcatApplication，即我们自己SpringBoot项目的启动类
+		 * Start-Class是 smoketest.tomcat.SampleTomcatApplication，即我们自己 SpringBoot 项目的启动类
 		 *
-		 * BOOT-INF/classes目录：存放应用编译后的class文件源码；
-		 * BOOT-INF/lib目录：存放应用依赖的所有三方jar包文件
+		 * BOOT-INF/classes 目录：存放应用编译后的 class 文件源码,
+		 * BOOT-INF/lib 目录：存放应用依赖的所有三方 jar 包文件
 		 *
+		 * org(springboot启动程序)
 		 */
 
 //		SpringApplicationBuilder springApplicationBuilder = new SpringApplicationBuilder(SampleTomcatApplication.class)
@@ -76,8 +76,9 @@ public class SampleTomcatApplication {
 		/**
 		 * 推测应用类型和设置启动初始化器
 		 * 设置初始化器和监听器
+		 *
+		 * 自动装配在注解上面 @SpringBootApplication
 		 */
-
 		SpringApplication springApplication = new SpringApplication(SampleTomcatApplication.class);
 
 		springApplication.run(args);

@@ -39,6 +39,7 @@ spring:
     timeout-per-shutdown-phase: 30s
 
 
+
 # 配置参考: spring-boot-project/spring-boot-actuator-autoconfigure/out/production/resources/META-INF/additional-spring-configuration-metadata.json
 # 文档: https://springdoc.cn/spring-boot/actuator.html#actuator.endpoints.kubernetes-probes.lifecycle
 # http://127.0.0.1:8083/actuator
@@ -49,7 +50,7 @@ management:
       enable: false
     # port和address 如果配置了就要都配
     port: 1234  #  指定访问监控方法的端口，与逻辑接口端口分离。如果不想将这些暴露在http中，可以设置 management.port = -1
-    address: 127.0.0.1  # 只允许127.0.0.1访问
+    address: 127.0.0.1  # 只允许127.0.0.1访问, 一般不要127.0.0.1, k8s健康检查不是这个ip是其他ip
     base-path: /jk  # http://127.0.0.1:1234/jk/actuator  # 访问根路径: http://{ip}:{port}/jk/actuator
   health:
     db:  # /health端点有很多自动配置的健康指示器：如redis、rabbitmq、db等组件。当你的项目有依赖对应组件的时候，这些健康指示器就会被自动装配，继而采集对应的信息。
@@ -84,7 +85,7 @@ management:
       # when-authorized: 详细信息将会展示给通过认证的用户。授权的角色可以通过 management.endpoint.health.roles 配置
       show-details: always  # http://127.0.0.1:8083/actuator/health/ 就可以看到
       logging:
-        slow-indicator-threshold: 10s  # 设置慢指标阈值为10秒
+        slow-indicator-threshold: 3s  # 设置慢指标阈值为3秒
   endpoints:
     enabled-by-default: true #暴露所有端点信息, 或者禁用所有
     web:
