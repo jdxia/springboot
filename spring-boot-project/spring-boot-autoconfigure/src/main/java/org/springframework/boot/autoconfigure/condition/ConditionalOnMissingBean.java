@@ -62,6 +62,7 @@ import org.springframework.context.annotation.Conditional;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+//使用了@Conditional注解，条件类是OnBeanCondition
 @Conditional(OnBeanCondition.class)
 public @interface ConditionalOnMissingBean {
 

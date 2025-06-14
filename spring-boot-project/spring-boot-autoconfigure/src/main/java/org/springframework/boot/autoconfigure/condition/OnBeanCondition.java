@@ -73,11 +73,13 @@ import org.springframework.util.StringUtils;
  * @see ConditionalOnMissingBean
  * @see ConditionalOnSingleCandidate
  */
+//定义带排序的组件的排序顺序，2147483647即为默认值
 @Order(Ordered.LOWEST_PRECEDENCE)
 class OnBeanCondition extends FilteringSpringBootCondition implements ConfigurationCondition {
 
 	@Override
 	public ConfigurationPhase getConfigurationPhase() {
+		// 在注册bean的时候注解生效
 		return ConfigurationPhase.REGISTER_BEAN;
 	}
 
@@ -122,12 +124,16 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 		return null;
 	}
 
+	/**
+	 * 获得判断结果的方法，ConditionOutcome类中存着boolean类型的结果
+	 */
 	@Override
 	public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
+		//返回一个新的ConditionMessage
 		ConditionMessage matchMessage = ConditionMessage.empty();
 		MergedAnnotations annotations = metadata.getAnnotations();
 
-		// 如果存在ConditionalOnBean注解
+		// 如果存在 ConditionalOnBean 注解
 		if (annotations.isPresent(ConditionalOnBean.class)) {
 			Spec<ConditionalOnBean> spec = new Spec<>(context, metadata, annotations, ConditionalOnBean.class);
 			MatchResult matchResult = getMatchingBeans(context, spec);
@@ -207,10 +213,13 @@ class OnBeanCondition extends FilteringSpringBootCondition implements Configurat
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
 		boolean considerHierarchy = spec.getStrategy() != SearchStrategy.CURRENT;
 		Set<Class<?>> parameterizedContainers = spec.getParameterizedContainers();
+		//判断当前的搜索策略是否是PARENTS或者ANCESTORS，默认是ALL
 		if (spec.getStrategy() == SearchStrategy.ANCESTORS) {
 			BeanFactory parent = beanFactory.getParentBeanFactory();
 			Assert.isInstanceOf(ConfigurableListableBeanFactory.class, parent,
 					"Unable to use SearchStrategy.ANCESTORS");
+
+			//如果是PARENTS或者ANCESTORS，当前bean工厂就用父工厂
 			beanFactory = (ConfigurableListableBeanFactory) parent;
 		}
 		MatchResult result = new MatchResult();

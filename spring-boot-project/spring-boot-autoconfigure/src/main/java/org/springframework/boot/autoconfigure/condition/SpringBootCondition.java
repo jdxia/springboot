@@ -56,6 +56,8 @@ public abstract class SpringBootCondition implements Condition {
 			// 将判断结果记录到ConditionEvaluationReport中
 			//ConditionEvaluationReportLoggingListener会在收到ContextRefreshedEvent事件后把判断结果用日志的方式打印出来
 			recordEvaluation(context, classOrMethodName, outcome);
+
+			//最后返回ConditionOutcome的isMatch就是返回boolean类型结果
 			return outcome.isMatch();
 		}
 		catch (NoClassDefFoundError ex) {
