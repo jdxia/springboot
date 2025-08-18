@@ -413,8 +413,12 @@ public class SpringApplication {
 				new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), timeTakenToStartup);
 			}
 
-			// 发布 ApplicationStartedEvent 事件，表示Spring容器已经启动
-			// 健康检查
+			/**
+			 * 发布 ApplicationStartedEvent 事件，表示Spring容器已经启动
+			 * 健康检查
+			 *
+			 * {@link org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration}
+			 */
 			listeners.started(context, timeTakenToStartup);
 
 			/**

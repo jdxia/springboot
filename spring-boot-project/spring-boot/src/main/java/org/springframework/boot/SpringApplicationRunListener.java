@@ -18,6 +18,7 @@ package org.springframework.boot;
 
 import java.time.Duration;
 
+import org.springframework.boot.context.event.EventPublishingRunListener;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -89,7 +90,10 @@ public interface SpringApplicationRunListener {
 	 * @since 2.6.0
 	 */
 	default void started(ConfigurableApplicationContext context, Duration timeTaken) {
-		// 看子类 有 AvailabilityChangeEvent
+		/**
+		 * 看当前方法的子类 有 AvailabilityChangeEvent
+		 * {@link EventPublishingRunListener#started(ConfigurableApplicationContext, Duration)}
+		 */
 		started(context);
 	}
 
@@ -116,7 +120,10 @@ public interface SpringApplicationRunListener {
 	 * unknown
 	 * @since 2.6.0
 	 */
-	// 看子类
+	/**
+	 * 看子类
+	 * {@link EventPublishingRunListener#ready(ConfigurableApplicationContext, Duration)}
+	 */
 	default void ready(ConfigurableApplicationContext context, Duration timeTaken) {
 		running(context);
 	}

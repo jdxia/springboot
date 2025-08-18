@@ -37,6 +37,9 @@ import org.springframework.util.Assert;
  */
 public class ApplicationAvailabilityBean
 		implements ApplicationAvailability, ApplicationListener<AvailabilityChangeEvent<?>> {
+	/**
+	 * 实现了ApplicationAvailability、ApplicationListener接口，它接收AvailabilityChangeEvent事件，然后存储到events中
+	 */
 
 	private final Map<Class<? extends AvailabilityState>, AvailabilityChangeEvent<?>> events = new ConcurrentHashMap<>();
 

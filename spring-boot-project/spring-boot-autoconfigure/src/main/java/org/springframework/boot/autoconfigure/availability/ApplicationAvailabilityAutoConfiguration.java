@@ -32,6 +32,8 @@ public class ApplicationAvailabilityAutoConfiguration {
 
 	@Bean
 	public ApplicationAvailabilityBean applicationAvailability() {
+
+		// 定义了 ApplicationAvailabilityBean
 		return new ApplicationAvailabilityBean();
 	}
 

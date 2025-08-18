@@ -121,6 +121,10 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	@Override
 	public void started(ConfigurableApplicationContext context, Duration timeTaken) {
 		context.publishEvent(new ApplicationStartedEvent(this.application, this.args, context, timeTaken));
+		/**
+		 * 发布 AvailabilityChangeEvent 事件 {@link AvailabilityChangeEvent}
+		 * 应用程序正在运行，且其内部状态正确的事件
+		 */
 		AvailabilityChangeEvent.publish(context, LivenessState.CORRECT);
 	}
 

@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import java.util.Objects;
@@ -90,7 +91,7 @@ public class SampleTomcatApplication {
 
 		SpringApplication springApplication = new SpringApplication(SampleTomcatApplication.class);
 
-		springApplication.run(args);
+		ConfigurableApplicationContext context = springApplication.run(args);
 
 	}
 

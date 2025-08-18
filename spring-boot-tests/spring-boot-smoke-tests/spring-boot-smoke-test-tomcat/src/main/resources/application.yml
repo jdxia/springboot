@@ -13,6 +13,7 @@ server:
     accept-count: 800
     max-connections: 1000
   servlet:
+#    context-path: /api/${spring.application.name}
     encoding:
       charset: UTF-8
       encoding: UTF-8
