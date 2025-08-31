@@ -51,6 +51,20 @@ public abstract class Launcher {
 	protected void launch(String[] args) throws Exception {
 		if (!isExploded()) {
 			/**
+			 * URL 的关联协议（ Protocol ）对应一种 URLStreamHandler实现类， JDK 默认支持文件（ file ）、 HTTP, JAR 等协议，故 JDK 内建了对应协议的实现。
+			 * 这些实现类均存放在 sun.net.www.protocol 包下，并且类名必须为 Handler ，其类全名模式为 sun.net.www.protocol.${protocol}.Handler ， 其中 $｛protocol｝表示协议名
+			 * 常见的协议实现如下
+			 * FILE: sun.net.www.protocol.file.Handler
+			 * JAR: sun.net.www.protocol.jar.Handler
+			 * http: sun.net.www.protocol.http.Handler
+			 * 以上类均为 java.net.URLStreamHandler、实现类，换言之，如果需要扩展，则继承 URLStreamHandler 类为必选项，
+			 * 通常配置 Java 系统属性（ System#getProperties() ) java.protocol.handler.pkgs ，追加 URLStreamHandler、 实现类的 package 多个 package 以' | '分割 。
+			 * 因此， JarFile.registerUrlProtocolHandler() 方法将 org.springframework.boot.loader 追加到 Java 系统属性 java.protocol.handler.pkgs 中。
+			 * 也就是说， org.springframework.boot.loader 包下存在协议对应的 Handler类，即 org.springframework.boot.loader.jar.Handler ， 按照类名模式其实现协议为 JAR。
+			 * 令人疑惑的是, JAR 协议不是内建实现了吗？它是如何覆盖的呢？
+			 * 看下面
+			 *
+			 *
 			 * 注册jar URL处理器
 			 * 里面有个方式判断是不是jar包启动
 			 *
