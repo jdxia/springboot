@@ -216,33 +216,50 @@ public class LoggingApplicationListener implements GenericApplicationListener {
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
+		// 应用正在启动的事件
 		if (event instanceof ApplicationStartingEvent) {
 			onApplicationStartingEvent((ApplicationStartingEvent) event);
 		}
+
+		// Environment 环境已准备事件
 		else if (event instanceof ApplicationEnvironmentPreparedEvent) {
 			onApplicationEnvironmentPreparedEvent((ApplicationEnvironmentPreparedEvent) event);
 		}
+
+		// 应用已准备事件
 		else if (event instanceof ApplicationPreparedEvent) {
 			onApplicationPreparedEvent((ApplicationPreparedEvent) event);
 		}
+
+		// Spring 上下文关闭事件
 		else if (event instanceof ContextClosedEvent) {
 			onContextClosedEvent((ContextClosedEvent) event);
 		}
+
+		// 应用启动失败事件
 		else if (event instanceof ApplicationFailedEvent) {
 			onApplicationFailedEvent();
 		}
 	}
 
 	private void onApplicationStartingEvent(ApplicationStartingEvent event) {
+		// 创建 LoggingSystem 对象
+		// 指定了类型则使用指定的，没有则尝试创建对应的对象，ClassLoader 中有对应的 Class 对象则创建（logback > log4j2 > java logging）
 		this.loggingSystem = LoggingSystem.get(event.getSpringApplication().getClassLoader());
+
+		// LoggingSystem 的初始化前置处理
 		this.loggingSystem.beforeInitialize();
 	}
 
 	private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
 		SpringApplication springApplication = event.getSpringApplication();
+
+		// 如果还未明确 LoggingSystem 类型，那么这里继续创建 LoggingSystem 对象
 		if (this.loggingSystem == null) {
 			this.loggingSystem = LoggingSystem.get(springApplication.getClassLoader());
 		}
+
+		// 初始化 LoggingSystem 对象，创建日志文件，设置日志级别
 		initialize(event.getEnvironment(), springApplication.getClassLoader());
 	}
 
@@ -288,15 +305,25 @@ public class LoggingApplicationListener implements GenericApplicationListener {
 	 * @param classLoader the classloader
 	 */
 	protected void initialize(ConfigurableEnvironment environment, ClassLoader classLoader) {
+		// 根据 Environment 环境通过 LoggingSystemProperties 往 System 进行一些日志配置
 		getLoggingSystemProperties(environment).apply();
+
+		// 根据 Environment 环境配置的日志名称和路径创建一个日志文件
+		// 默认情况没有配置，这个对象也为 null，而是在打印第一个日志的时候会创建（如果不存在的话）
 		this.logFile = LogFile.get(environment);
 		if (this.logFile != null) {
+			// 往 System 添加日志文件的名称和路径
 			this.logFile.applyToSystemProperties();
 		}
+		// 创建一个日志分组对象
 		this.loggerGroups = new LoggerGroups(DEFAULT_GROUP_LOGGERS);
+		// 初始化早期的 Spring Boot 日志级别（Debug 或者 Trace）
 		initializeEarlyLoggingLevel(environment);
+		// 初始化 LoggingSystem 对象
 		initializeSystem(environment, this.loggingSystem, this.logFile);
+		// 初始化最终的 Spring Boot 日志级别，逐个设置 Environment 配置的日志级别
 		initializeFinalLoggingLevels(environment, this.loggingSystem);
+		// 向 JVM 注册一个钩子，用于在 JVM 关闭时关闭日志系统
 		registerShutdownHookIfNecessary(environment, this.loggingSystem);
 	}
 
@@ -325,9 +352,12 @@ public class LoggingApplicationListener implements GenericApplicationListener {
 		String logConfig = StringUtils.trimWhitespace(environment.getProperty(CONFIG_PROPERTY));
 		try {
 			LoggingInitializationContext initializationContext = new LoggingInitializationContext(environment);
+			// 如果没配置文件，则不指定配置文件初始化 LoggingSystem 对象
+			// 使用约定好的配置文件，或者使用默认配置
 			if (ignoreLogConfig(logConfig)) {
 				system.initialize(initializationContext, null, logFile);
 			}
+			// 否则，指定配置文件初始化 LoggingSystem 对象
 			else {
 				system.initialize(initializationContext, logConfig, logFile);
 			}

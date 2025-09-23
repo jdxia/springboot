@@ -120,6 +120,9 @@ public class LaunchedURLClassLoader extends URLClassLoader {
 		}
 	}
 
+	/**
+	 * 重写类加载器中加载 Class 类对象方法
+	 */
 	@Override
 	protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		if (name.startsWith("org.springframework.boot.loader.jarmode.")) {
