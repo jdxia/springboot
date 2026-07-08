@@ -86,9 +86,14 @@ public class SampleTomcatApplication {
 		 * 设置初始化器和监听器
 		 *
 		 * 自动装配在注解上面 @SpringBootApplication
+		 *
+		 * 注意: spring cloud的话 , 启动的时候会调用
+		 *  {@link org.springframework.cloud.bootstrap.BootstrapApplicationListener#onApplicationEvent}
+		 *  public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
+		 *
+		 *  然后web server会初始化这个
+		 *  {@link org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration#onApplicationEvent}
 		 */
-
-
 		SpringApplication springApplication = new SpringApplication(SampleTomcatApplication.class);
 
 		ConfigurableApplicationContext context = springApplication.run(args);

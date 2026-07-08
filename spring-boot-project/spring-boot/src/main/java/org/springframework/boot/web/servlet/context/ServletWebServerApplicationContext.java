@@ -164,7 +164,8 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		try {
 			/**
 			 * 启动了Tomcat之类的
-			 * 里面会注册优雅关机的
+			 * 1. 里面会注册优雅关机的
+			 * 2. 注册中心上线, 这边如果集成了cloud, 那cloud的这边会触发nacos的register
 			 */
 			createWebServer();
 		}
@@ -207,11 +208,15 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 					new WebServerGracefulShutdownLifecycle(this.webServer));
 
 			/**
+			 * WebServerStartStopLifecycle 继承了 SmartLifecycle 在 里面的 会触发start
+			 *
 			 * 会发送, ServletWebServerInitializedEvent 事件
 			 * {@link org.springframework.boot.web.servlet.context.WebServerStartStopLifecycle#start()}
 			 *
 			 * SpringCloud提供了一个抽象类 AbstractAutoServiceRegistration，实现了对WebServerInitializedEvent（ServletWebServerInitializedEvent的父类）事件的监听
 			 * 一般不同的注册中心都会去继承这个类，监听项目启动，实现往注册中心服务端进行注册
+			 * 这个在 spring cloud下非常重要, 看spring-cloud-common
+			 * {@link org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration#onApplicationEvent}
 			 */
 			getBeanFactory().registerSingleton("webServerStartStop",
 					new WebServerStartStopLifecycle(this, this.webServer));
