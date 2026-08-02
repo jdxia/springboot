@@ -402,6 +402,7 @@ public class SpringApplication {
 			/**
 			 * 注册优雅关机
 			 * 刷新Spring容器，会解析配置类、扫描、启动WebServer
+			 * 创建web server, 然后 nacos 注册中心
 			 */
 			refreshContext(context);
 
@@ -444,6 +445,8 @@ public class SpringApplication {
 			 * 已经可以接收流量
 			 *
 			 * 如果有启动后的开始任务, 建议在这里进行 AvailabilityChangeEvent ReadinessState 监听执行, 然后最好开@Async, 避免死循环影响别的事件消费者
+			 *
+			 * nacos的上下文刷新也在监听这个事件 com.alibaba.cloud.nacos.refresh.NacosContextRefresher#onApplicationEvent 进行创建配置监听器
 			 */
 			listeners.ready(context, timeTakenToReady);
 		}
@@ -508,7 +511,7 @@ public class SpringApplication {
 		 * 这个里面会获取 EnvironmentPostProcessors, 获取很多, 你自己也可以自定义, 然后用这个EnvironmentPostProcessors 来执行
 		 * {@link EnvironmentPostProcessorApplicationListener#onApplicationEvent(ApplicationEvent)}
 		 *
-		 * spring-cloud是 BootstrapApplicationListener#onApplicationEvent, 这个在 ConfigFileApplicationListener 前面的，这个是重点
+		 * spring-cloud是 {@link org.springframework.cloud.bootstrap.BootstrapApplicationListener#onApplicationEvent}, 这个在 ConfigFileApplicationListener 前面的，这个是重点
 		 * ConfigFileApplicationListener 会进行文件的加载，如果我想添加一些新的配置文件，就可以在BootstrapApplicationListener中添加, 也就是 bootStrap配置文件
 		 */
 		listeners.environmentPrepared(bootstrapContext, environment);
@@ -624,6 +627,8 @@ public class SpringApplication {
 			/**
 			 * 优雅关机, 最重要的优雅关机, tomcat的 是在
 			 * {@link org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext#onRefresh}
+			 *
+			 * 里面也有 nacos 注册中心的
 			 */
 			shutdownHook.registerApplicationContext(context);
 		}
