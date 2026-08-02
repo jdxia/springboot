@@ -373,6 +373,7 @@ public class SpringApplication {
 			 *
 			 * bootstrap.yaml 也在这, 这是cloud才回用到的 spring-cloud-starter-bootstrap
 			 *
+			 * nacos的配置也在这
 			 */
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
 
@@ -504,10 +505,11 @@ public class SpringApplication {
 		 * 默认 EnvironmentPostProcessorApplicationListener(监听器) 会处理这个事件，会从spring.factories中拿出 EnvironmentPostProcessor 进一步处理Environment
 		 *
 		 * 看 EnvironmentPostProcessorApplicationListener 的 onApplicationEvent 方法, 重点
+		 * 这个里面会获取 EnvironmentPostProcessors, 获取很多, 你自己也可以自定义, 然后用这个EnvironmentPostProcessors 来执行
 		 * {@link EnvironmentPostProcessorApplicationListener#onApplicationEvent(ApplicationEvent)}
 		 *
-		 * spring-cloud是 BootstrapApplicationListener#onApplicationEvent, 这个在 ConfigFileApplicationListener前面的，这个是重点
-		 * ConfigFileApplicationListener会进行文件的加载，如果我想添加一些新的配置文件，就可以在BootstrapApplicationListener中添加, 也就是 bootStrap配置文件
+		 * spring-cloud是 BootstrapApplicationListener#onApplicationEvent, 这个在 ConfigFileApplicationListener 前面的，这个是重点
+		 * ConfigFileApplicationListener 会进行文件的加载，如果我想添加一些新的配置文件，就可以在BootstrapApplicationListener中添加, 也就是 bootStrap配置文件
 		 */
 		listeners.environmentPrepared(bootstrapContext, environment);
 

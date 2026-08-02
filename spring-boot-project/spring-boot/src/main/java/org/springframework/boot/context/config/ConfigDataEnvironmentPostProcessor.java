@@ -92,6 +92,7 @@ public class ConfigDataEnvironmentPostProcessor implements EnvironmentPostProces
 
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+		// 往下
 		postProcessEnvironment(environment, application.getResourceLoader(), application.getAdditionalProfiles());
 	}
 
@@ -100,8 +101,13 @@ public class ConfigDataEnvironmentPostProcessor implements EnvironmentPostProces
 		try {
 			this.logger.trace("Post-processing environment to add config data");
 			resourceLoader = (resourceLoader != null) ? resourceLoader : new DefaultResourceLoader();
-			// 先生成 ConfigDataEnvironment 对象，核心是根据指定 location 构造类型为 Kind.INITIAL_IMPORT 的 ConfigDataEnvironmentContributor
-			// getConfigDataEnvironment 是对环境的一层封装，对配置文件的读取是后面的那个方法：processAndApply()
+			/**
+			 * 先生成 ConfigDataEnvironment 对象，核心是根据指定 location 构造类型为 Kind.INITIAL_IMPORT 的 ConfigDataEnvironmentContributor
+			 * getConfigDataEnvironment 是对环境的一层封装，对配置文件的读取是后面的那个方法：processAndApply()
+			 *
+			 * {@link ConfigDataEnvironment#processAndApply()}
+			 * 重点, 往下
+			 */
 			getConfigDataEnvironment(environment, resourceLoader, additionalProfiles).processAndApply();
 		}
 		catch (UseLegacyConfigProcessingException ex) {
@@ -114,6 +120,7 @@ public class ConfigDataEnvironmentPostProcessor implements EnvironmentPostProces
 
 	ConfigDataEnvironment getConfigDataEnvironment(ConfigurableEnvironment environment, ResourceLoader resourceLoader,
 			Collection<String> additionalProfiles) {
+		// 往下
 		return new ConfigDataEnvironment(this.logFactory, this.bootstrapContext, environment, resourceLoader,
 				additionalProfiles, this.environmentUpdateListener);
 	}

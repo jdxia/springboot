@@ -21,6 +21,7 @@ import java.util.function.Function;
 
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.event.ApplicationFailedEvent;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
@@ -108,6 +109,8 @@ public class EnvironmentPostProcessorApplicationListener implements SmartApplica
 		 * SpringApplicationJsonEnvironmentPostProcessor 可以在命令行配置 spring.application.json={\"k1\":\"v1\"} 解析成map放进来, 可以覆盖 properties 里面的
 		 * CloudFoundryVcapEnvironmentPostProcessor 忽略, CloudFound是业界第一个开源Paas云平台
 		 *
+		 * 这是一个重点, nacos是在这里
+		 * {@link ConfigDataEnvironmentPostProcessor#postProcessEnvironment(ConfigurableEnvironment, SpringApplication)}
 		 * ConfigDataEnvironmentPostProcessor 负责解析各个地方的 application.properties 和 application.yaml
 		 * 				以前我们的配置文件的优先级 是由 ConfigFileApplicationListener 处理的 但是这个过期了, 现在是 ConfigDataEnvironmentPostProcessor
 		 * 				多环境配置是在这里决定的, 确定当前被激活的profile

@@ -82,6 +82,8 @@ class ConfigDataImporter {
 			List<ConfigDataLocation> locations) {
 		try {
 			Profiles profiles = (activationContext != null) ? activationContext.getProfiles() : null;
+
+			// 往下
 			List<ConfigDataResolutionResult> resolved = resolve(locationResolverContext, profiles, locations);
 			return load(loaderContext, resolved);
 		}
@@ -94,6 +96,8 @@ class ConfigDataImporter {
 			Profiles profiles, List<ConfigDataLocation> locations) {
 		List<ConfigDataResolutionResult> resolved = new ArrayList<>(locations.size());
 		for (ConfigDataLocation location : locations) {
+
+			// resolve 往下
 			resolved.addAll(resolve(locationResolverContext, profiles, location));
 		}
 		return Collections.unmodifiableList(resolved);
@@ -102,6 +106,8 @@ class ConfigDataImporter {
 	private List<ConfigDataResolutionResult> resolve(ConfigDataLocationResolverContext locationResolverContext,
 			Profiles profiles, ConfigDataLocation location) {
 		try {
+
+			// 往下
 			return this.resolvers.resolve(locationResolverContext, location, profiles);
 		}
 		catch (ConfigDataNotFoundException ex) {

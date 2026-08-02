@@ -270,7 +270,11 @@ class ConfigDataEnvironment {
 		// 获取spring.profiles.active=dev
 		activationContext = withProfiles(contributors, activationContext);
 
-		// 然后找指定profile的配置文件，比如application-dev.properties
+		/**
+		 * 然后找指定profile的配置文件，比如application-dev.properties
+		 *
+		 * 最终, 这个里面会调用 spring cloud alibaba 的 {@link com.alibaba.cloud.nacos.configdata.NacosConfigDataLocationResolver#registerConfigManager}
+		 */
 		contributors = processWithProfiles(contributors, importer, activationContext);
 
 		// 根据当前云平台和指定的profile，过滤每个配置文件，配置文件中可以指定激活条件
@@ -356,6 +360,8 @@ class ConfigDataEnvironment {
 	private ConfigDataEnvironmentContributors processWithProfiles(ConfigDataEnvironmentContributors contributors,
 			ConfigDataImporter importer, ConfigDataActivationContext activationContext) {
 		this.logger.trace("Processing config data environment contributors with profile activation context");
+
+		// 往下
 		contributors = contributors.withProcessedImports(importer, activationContext);
 		registerBootstrapBinder(contributors, activationContext, ALLOW_INACTIVE_BINDING);
 		return contributors;

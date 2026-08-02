@@ -104,6 +104,8 @@ class ConfigDataLocationResolvers {
 		}
 		for (ConfigDataLocationResolver<?> resolver : getResolvers()) {
 			if (resolver.isResolvable(context, location)) {
+
+				// 往下
 				return resolve(resolver, context, location, profiles);
 			}
 		}
