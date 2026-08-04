@@ -371,9 +371,11 @@ public class SpringApplication {
 			 * 包括操作系统，JVM、ServletContext、properties、yaml等等配置, 解析properties文件
 			 * 会发布一个 ApplicationEnvironmentPreparedEvent
 			 *
+			 * springcloud 老的 bootstrap 也就是 legacyContext 是下面流程
 			 * bootstrap.yaml 也在这, 这是cloud才回用到的 spring-cloud-starter-bootstrap
+			 * nacos的配置装配类 NacosConfigSpringCloudAutoConfiguration 也是在那个 spring-cloud-starter-bootstrap 临时容器
+			 * 他这个临时容器会扫 org.springframework.cloud.bootstrap.BootstrapConfiguration
 			 *
-			 * nacos的配置也在这
 			 */
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
 
@@ -391,7 +393,8 @@ public class SpringApplication {
 			context.setApplicationStartup(this.applicationStartup);
 
 			/**
-			 * 利用 ApplicationContextInitializer 初始化Spring容器
+			 * 利用 ApplicationContextInitializer 初始化Spring容器, 配置中心的值也是在这里
+			 *
 			 * 发布 ApplicationContextInitializedEvent
 			 * 关闭DefaultBootstrapContext初始化容器, 这边就不需要了, spring真正的容器已经创建出来了
 			 * 注册primarySources类，就是run方法存入进来的配置类
@@ -564,7 +567,16 @@ public class SpringApplication {
 		// 将设置在SpringApplication上的 beanNameGenerator、resourceLoader 设置到Spring容器中
 		postProcessApplicationContext(context);
 
-		// 利用 ApplicationContextInitializer 初始化Spring容器, 也重要
+		/**
+		 * 利用 ApplicationContextInitializer 初始化Spring容器, 也重要
+		 *
+		 * 还有 dubbo的
+		 *
+		 * 最重要的是 springCloud的 {@link org.springframework.cloud.bootstrap.config.PropertySourceBootstrapConfiguration} 他的initialize方法
+		 * 这个类是在 父容器创建的时候放的, 因为他实现了 org.springframework.cloud.bootstrap.BootstrapConfiguration ,
+		 * cloud的临时容器 把“远程配置发现能力”放在父容器，把“把配置装入哪个 Environment”推迟到主容器初始化阶段
+		 * 这个就是主容器初始化阶段 并且决定优先级的
+		 */
 		applyInitializers(context);
 
 		// 发布ApplicationContextInitializedEvent事件，表示Spring容器初始化完成
