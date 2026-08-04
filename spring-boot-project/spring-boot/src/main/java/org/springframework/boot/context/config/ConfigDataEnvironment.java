@@ -273,6 +273,24 @@ class ConfigDataEnvironment {
 		/**
 		 * 然后找指定profile的配置文件，比如application-dev.properties
 		 *
+		 * Spring Cloud Alibaba 在 spring.factories 中注册两个 SPI：
+		 * org.springframework.boot.context.config.ConfigDataLocationResolver=\
+		 * com.alibaba.cloud.nacos.configdata.NacosConfigDataLocationResolver
+		 *
+		 * org.springframework.boot.context.config.ConfigDataLoader=\
+		 * com.alibaba.cloud.nacos.configdata.NacosConfigDataLoader
+		 *
+		 * Spring Boot 定义 ConfigDataLocationResolver / ConfigDataLoader SPI
+		 *                          ↑
+		 * Spring Cloud Alibaba 提供 Nacos 实现
+		 *                          ↑
+		 * Spring Boot 在处理 spring.config.import 时回调 Alibaba
+		 *
+		 * ConfigDataEnvironment.processAndApply()
+		 *     -> ConfigDataEnvironmentContributors.withProcessedImports(...)
+		 *     -> ConfigDataImporter.resolveAndLoad(...)
+		 *     -> ConfigDataLocationResolvers.resolve(...)
+		 *
 		 * 最终, 这个里面会调用 spring cloud alibaba 的 {@link com.alibaba.cloud.nacos.configdata.NacosConfigDataLocationResolver#registerConfigManager}
 		 */
 		contributors = processWithProfiles(contributors, importer, activationContext);

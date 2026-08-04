@@ -110,6 +110,7 @@ public class EnvironmentPostProcessorApplicationListener implements SmartApplica
 		 * CloudFoundryVcapEnvironmentPostProcessor 忽略, CloudFound是业界第一个开源Paas云平台
 		 *
 		 * 这是一个重点, nacos是在这里
+		 * 这是 configData
 		 * {@link ConfigDataEnvironmentPostProcessor#postProcessEnvironment(ConfigurableEnvironment, SpringApplication)}
 		 * ConfigDataEnvironmentPostProcessor 负责解析各个地方的 application.properties 和 application.yaml
 		 * 				以前我们的配置文件的优先级 是由 ConfigFileApplicationListener 处理的 但是这个过期了, 现在是 ConfigDataEnvironmentPostProcessor

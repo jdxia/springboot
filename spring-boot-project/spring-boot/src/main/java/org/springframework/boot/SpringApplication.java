@@ -371,11 +371,13 @@ public class SpringApplication {
 			 * 包括操作系统，JVM、ServletContext、properties、yaml等等配置, 解析properties文件
 			 * 会发布一个 ApplicationEnvironmentPreparedEvent
 			 *
+			 * 1. legacy bootstrap 父容器方式
 			 * springcloud 老的 bootstrap 也就是 legacyContext 是下面流程
 			 * bootstrap.yaml 也在这, 这是cloud才回用到的 spring-cloud-starter-bootstrap
 			 * nacos的配置装配类 NacosConfigSpringCloudAutoConfiguration 也是在那个 spring-cloud-starter-bootstrap 临时容器
 			 * 他这个临时容器会扫 org.springframework.cloud.bootstrap.BootstrapConfiguration
 			 *
+			 * 2. configData也是在里面
 			 */
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, bootstrapContext, applicationArguments);
 
@@ -513,7 +515,9 @@ public class SpringApplication {
 		 * 看 EnvironmentPostProcessorApplicationListener 的 onApplicationEvent 方法, 重点
 		 * 这个里面会获取 EnvironmentPostProcessors, 获取很多, 你自己也可以自定义, 然后用这个EnvironmentPostProcessors 来执行
 		 * {@link EnvironmentPostProcessorApplicationListener#onApplicationEvent(ApplicationEvent)}
+		 * configData是在里面
 		 *
+		 * Legacy bootstrap 父容器是下面这样, 如果是configData就不是这样
 		 * spring-cloud是 {@link org.springframework.cloud.bootstrap.BootstrapApplicationListener#onApplicationEvent}, 这个在 ConfigFileApplicationListener 前面的，这个是重点
 		 * ConfigFileApplicationListener 会进行文件的加载，如果我想添加一些新的配置文件，就可以在BootstrapApplicationListener中添加, 也就是 bootStrap配置文件
 		 */
