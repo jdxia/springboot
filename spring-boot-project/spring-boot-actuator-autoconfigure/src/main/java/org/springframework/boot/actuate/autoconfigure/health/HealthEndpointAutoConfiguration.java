@@ -33,6 +33,11 @@ import org.springframework.context.annotation.Import;
  * @since 2.0.0
  */
 @Configuration(proxyBeanMethods = false)
+/**
+ * 这里的 available 不是简单的“类存在”，而是：
+ * available = enabled && 至少通过某种技术暴露
+ * 看 {@link OnAvailableEndpointCondition#getMatchOutcome(Environment, MergedAnnotation, MergedAnnotation)}
+ */
 @ConditionalOnAvailableEndpoint(endpoint = HealthEndpoint.class)
 @EnableConfigurationProperties(HealthEndpointProperties.class)
 // 加载了HealthEndpointConfiguration、ReactiveHealthEndpointConfiguration、HealthEndpointWebExtensionConfiguration、HealthEndpointReactiveWebExtensionConfiguration这几个类
@@ -40,5 +45,21 @@ import org.springframework.context.annotation.Import;
 @Import({ HealthEndpointConfiguration.class, ReactiveHealthEndpointConfiguration.class,
 		HealthEndpointWebExtensionConfiguration.class, HealthEndpointReactiveWebExtensionConfiguration.class })
 public class HealthEndpointAutoConfiguration {
+
+	/**
+	 业务能力层
+	 HealthEndpoint、MetricsEndpoint、LoggersEndpoint
+	 |
+	 v
+	 端点发现与调用层
+	 EndpointDiscoverer、WebOperation、OperationInvoker
+	 |
+	 v
+	 技术暴露层
+	 WebMvcEndpointHandlerMapping
+	 WebFluxEndpointHandlerMapping
+	 JmxEndpointExporter
+
+	 */
 
 }
