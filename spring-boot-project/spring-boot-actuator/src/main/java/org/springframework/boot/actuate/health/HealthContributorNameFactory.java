@@ -37,6 +37,9 @@ public class HealthContributorNameFactory implements Function<String, String> {
 
 	@Override
 	public String apply(String name) {
+		/**
+		 * 注册名去掉后缀
+		 */
 		for (String suffix : SUFFIXES) {
 			if (name != null && name.toLowerCase(Locale.ENGLISH).endsWith(suffix)) {
 				return name.substring(0, name.length() - suffix.length());

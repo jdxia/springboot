@@ -64,9 +64,9 @@ management:
       enable: true
   endpoint:
     mappings:
-      enable: true
+      enable: true # 启用该端点
     shutdown:
-      enabled: true # 启用该端点
+      enabled: false
     beans:
       enabled: true
       # 端点会自动缓存不需要任何参数的读取操作的响应。 要配置端点缓存响应的时间，请使用其 cache.time-to-live 属性

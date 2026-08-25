@@ -24,22 +24,9 @@ import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.boot.actuate.health.CompositeHealthContributor;
-import org.springframework.boot.actuate.health.CompositeReactiveHealthContributor;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthContributor;
-import org.springframework.boot.actuate.health.HealthContributorRegistry;
-import org.springframework.boot.actuate.health.HealthEndpoint;
-import org.springframework.boot.actuate.health.HealthEndpointGroups;
-import org.springframework.boot.actuate.health.HealthEndpointGroupsPostProcessor;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.boot.actuate.health.HttpCodeStatusMapper;
-import org.springframework.boot.actuate.health.NamedContributor;
-import org.springframework.boot.actuate.health.ReactiveHealthContributor;
-import org.springframework.boot.actuate.health.ReactiveHealthIndicator;
-import org.springframework.boot.actuate.health.SimpleHttpCodeStatusMapper;
-import org.springframework.boot.actuate.health.SimpleStatusAggregator;
-import org.springframework.boot.actuate.health.StatusAggregator;
+import org.springframework.boot.actuate.autoconfigure.system.DiskSpaceHealthContributorAutoConfiguration;
+import org.springframework.boot.actuate.health.*;
+import org.springframework.boot.actuate.system.DiskSpaceHealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -74,6 +61,15 @@ class HealthEndpointConfiguration {
 		return new AutoConfiguredHealthEndpointGroups(applicationContext, properties);
 	}
 
+	/**
+	 * Map<String, HealthContributor> healthContributors
+	 * Spring 会把容器里所有 {@link HealthContributor} Bean 按 Bean 名收集成 Map,
+	 * 很多是继承了 {@link AbstractHealthIndicator} 这个
+	 *
+	 * 用 {@link DiskSpaceHealthIndicator} 看, 他是在 {@link DiskSpaceHealthContributorAutoConfiguration} 这个里面装配的
+	 *
+	 * 注册名会去掉后缀 {@link HealthContributorNameFactory#apply(String)}
+	 */
 	@Bean
 	@ConditionalOnMissingBean
 	HealthContributorRegistry healthContributorRegistry(ApplicationContext applicationContext,
